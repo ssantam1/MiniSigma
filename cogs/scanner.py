@@ -16,7 +16,7 @@ class Scanner(commands.Cog):
         self.db: DB.Database = client.db
 
     async def scan_channel(self, channel: discord.TextChannel) -> None:
-        upvote, downvote = self.db.get_emojis(channel.id)
+        (upvote, downvote) = self.db.get_emojis(channel.id)
         end_pt = datetime.datetime.now(datetime.timezone.utc)
         overall_diff: datetime.timedelta = end_pt - channel.created_at.replace(tzinfo=datetime.timezone.utc)
         
