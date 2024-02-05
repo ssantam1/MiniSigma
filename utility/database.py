@@ -127,7 +127,7 @@ class Database:
     
     def get_iq(self, id: int) -> int:
         '''Returns the IQ of a user'''
-        self.c.execute("SELECT upvotes-downvotes FROM Users WHERE id = ?", (id,))
+        self.c.execute("SELECT upvotes-downvotes+offset FROM Users WHERE id = ?", (id,))
         return self.c.fetchone()[0]
     
     # ========== EMOJI MANAGEMENT ==========
