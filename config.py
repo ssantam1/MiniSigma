@@ -1,0 +1,1 @@
+EMBED_COLOR: int = 0xADD8E6
