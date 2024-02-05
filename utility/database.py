@@ -67,19 +67,17 @@ class Database:
     
     def upvote_user(self, id: int, change: int, voter_id: int) -> int:
         user = self.get_user(id)
-        new_score = user[2] + change
-        self.c.execute("UPDATE Users SET upvotes = ? WHERE id = ?", (new_score, id))
+        self.c.execute("UPDATE Users SET upvotes = ? WHERE id = ?", (user[2] + change, id))
         self.conn.commit()
         self.update_fans(id, change, voter_id)
-        return new_score
+        return self.get_iq(id)
     
     def downvote_user(self, id: int, change: int, voter_id: int) -> int:
         user = self.get_user(id)
-        new_score = user[3] + change
-        self.c.execute("UPDATE Users SET downvotes = ? WHERE id = ?", (new_score, id))
+        self.c.execute("UPDATE Users SET downvotes = ? WHERE id = ?", (user[3] + change, id))
         self.conn.commit()
         self.update_haters(id, change, voter_id)
-        return new_score
+        return self.get_iq(id)
     
     # ========== FANS AND HATERS ==========
 
