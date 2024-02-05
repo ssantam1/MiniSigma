@@ -45,7 +45,7 @@ class Database:
     
     def add_user(self, id: int, name: str):
         # TODO: Add upvotes, downvotes, offset
-        self.c.execute("INSERT OR IGNORE INTO Users (id, username) VALUES (?, ?)", (id, name, ))
+        self.c.execute("INSERT OR IGNORE INTO Users (id, username, upvotes, downvotes, offset) VALUES (?, ?, ?, ?, ?)", (id, name, 0, 0, 100))
         self.conn.commit()
 
     def update_username(self, id: int, new_username: str):
@@ -55,7 +55,11 @@ class Database:
 
     def get_user(self, id: int) -> tuple[int, str, int, int, int]:
         self.c.execute("SELECT * FROM Users WHERE id = ?", (id,))
-        return self.c.fetchone()
+        result = self.c.fetchone()
+        if result is None:
+            self.add_user(id, "Unknown")
+            return self.get_user(id)
+        return result
     
     def list_users(self) -> list[tuple[int, str, int, int, int]]:
         self.c.execute("SELECT * FROM Users")
