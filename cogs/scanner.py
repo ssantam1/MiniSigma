@@ -16,7 +16,7 @@ class Scanner(commands.Cog):
         self.db: DB.Database = client.db
 
     async def scan_channel(self, channel: discord.TextChannel) -> None:
-        (upvote, downvote) = self.db.get_emojis(channel.id)
+        (upvote, downvote) = self.db.get_emojis(channel.guild.id)
         end_pt = datetime.datetime.now(datetime.timezone.utc)
         overall_diff: datetime.timedelta = end_pt - channel.created_at.replace(tzinfo=datetime.timezone.utc)
         
@@ -71,10 +71,12 @@ class Scanner(commands.Cog):
             if channel.id == 779432929445150811:
                 continue
             
-            await prog_message.edit(content=prog_string + f"Scanning {channel.name}")
+            await prog_message.edit(content=prog_string + f"- Scanning {channel.name}...")
             await self.scan_channel(channel)
-            prog_string += f"Finished scan on {channel.name}!\n"
+            prog_string += f"- Finished scan on {channel.name}!\n"
             await prog_message.edit(content=prog_string)
+
+        await prog_message.edit(content=prog_string + "✅ Scan done! Results recorded in log.")
 
 async def setup(client: MiniSigma):
     await client.add_cog(Scanner(client))
