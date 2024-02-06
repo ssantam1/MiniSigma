@@ -13,6 +13,9 @@ venv/
 # Ignore the database file (if it's a file-based database)
 *.db
 
+# Ignore xkcd json
+xkcd.json
+
 # Ignore vscode stuff
 .vscode/
 
