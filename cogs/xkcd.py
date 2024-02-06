@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 from bot import MiniSigma
+import os
 import logging
 import json
 import aiohttp
@@ -106,10 +107,14 @@ class XKCD(commands.Cog):
         await self.check_for_new_comic.start()
 
     def load_subscriptions(self):
-        with open("cogs/xkcd.json", "r") as f:
-            data: dict = json.load(f)
-            self.subscribed_channels = set(data.get("subscribed_channels", []))
-            self.latest_comic = data.get("latest_comic", 0)
+        try:
+            with open("cogs/xkcd.json", "r") as f:
+                data: dict = json.load(f)
+                self.subscribed_channels = set(data.get("subscribed_channels", []))
+                self.latest_comic = data.get("latest_comic", 0)
+        except FileNotFoundError:
+            logger.warning("No xkcd.json file found. Creating new one.")
+            self.save_subscriptions()
 
     def save_subscriptions(self):
         data = {"subscribed_channels": list(self.subscribed_channels), "latest_comic": self.latest_comic}
