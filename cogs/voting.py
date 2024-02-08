@@ -136,14 +136,15 @@ class Voting(commands.Cog):
         usernames: list[str] = []
         scores: list[str] = []
 
-        for i in range(num):
-            db_user = top[i]
-            display_name = await self.get_nick_or_name(interact, db_user.id)
+        for i in range(len(top)):
+            user = top[i]
+            id = user[0]
+            display_name = await self.get_nick_or_name(interact, id)
             display_name = nick_without_iq(display_name)
 
             ranks.append(str(i+1))
             usernames.append(display_name)
-            scores.append(str(db_user.get_iq()))
+            scores.append(str(self.db.get_iq(id)))
 
         embed.add_field(name="Rank", value="\n".join(ranks), inline=True)
         embed.add_field(name="Name", value="\n".join(usernames), inline=True)
