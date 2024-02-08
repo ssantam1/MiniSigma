@@ -28,8 +28,8 @@ class Database:
                 upvotes INTEGER,
                 downvotes INTEGER,
                 PRIMARY KEY (user_id, fan_or_hater_id),
-                FOREIGN KEY (user_id) REFERENCES Users(user_id),
-                FOREIGN KEY (fan_or_hater_id) REFERENCES Users(user_id)
+                FOREIGN KEY (user_id) REFERENCES Users(id),
+                FOREIGN KEY (fan_or_hater_id) REFERENCES Users(id)
             )''')
         
         self.c.execute('''
@@ -108,19 +108,14 @@ class Database:
         self.c.execute("SELECT id, username, upvotes-downvotes FROM Users ORDER BY upvotes-downvotes DESC LIMIT ?", (num,))
         return self.c.fetchall()
 
-    def loserboard(self, num: int) -> list[tuple[int, str, int]]:
-        '''Returns lowest scoring users as a list of tuples (user_id, username, upvotes-downvotes)'''
-        self.c.execute("SELECT id, username, upvotes-downvotes FROM Users ORDER BY upvotes-downvotes ASC LIMIT ?", (num,))
-        return self.c.fetchall()    
-
     def fans(self, id: int, num: int) -> list[tuple[int, str, int]]:
         '''Returns top fans of a user as a list of tuples (user_id, username, upvotes)'''
-        self.c.execute("SELECT fan_or_hater_id, username, upvotes FROM FansAndHaters JOIN Users ON fan_or_hater_id = id WHERE user_id = ? ORDER BY upvotes DESC LIMIT ?", (id, num))
+        self.c.execute("SELECT FansAndHaters.fan_or_hater_id, Users.username, FansAndHaters.upvotes FROM FansAndHaters JOIN Users ON FansAndHaters.fan_or_hater_id = Users.id WHERE FansAndHaters.user_id = ? ORDER BY FansAndHaters.upvotes DESC LIMIT ?", (id, num))
         return self.c.fetchall()
     
     def haters(self, id: int, num: int) -> list[tuple[int, str, int]]:
         '''Returns top haters of a user as a list of tuples (user_id, username, downvotes)'''
-        self.c.execute("SELECT fan_or_hater_id, username, downvotes FROM FansAndHaters JOIN Users ON fan_or_hater_id = id WHERE user_id = ? ORDER BY downvotes DESC LIMIT ?", (id, num))
+        self.c.execute("SELECT FansAndHaters.fan_or_hater_id, Users.username, FansAndHaters.downvotes FROM FansAndHaters JOIN Users ON FansAndHaters.fan_or_hater_id = Users.id WHERE FansAndHaters.user_id = ? ORDER BY FansAndHaters.downvotes DESC LIMIT ?", (id, num))
         return self.c.fetchall()
     
     def get_iq(self, id: int) -> int:
@@ -133,6 +128,7 @@ class Database:
     def add_guild(self, id: int):
         self.c.execute("INSERT OR IGNORE INTO Emojis (guild_id, upvote, downvote) VALUES (?, ?, ?)", (id, "👍", "👎"))
         self.conn.commit()
+        return self.get_emojis(id)
 
     def get_emojis(self, id: int) -> tuple[str, str]:
         self.c.execute("SELECT upvote, downvote FROM Emojis WHERE guild_id = ?", (id,))
