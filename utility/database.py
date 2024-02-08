@@ -128,11 +128,11 @@ class Database:
     def add_guild(self, id: int):
         self.c.execute("INSERT OR IGNORE INTO Emojis (guild_id, upvote, downvote) VALUES (?, ?, ?)", (id, "👍", "👎"))
         self.conn.commit()
-        return self.get_emojis(id)
+        return tuple("👍", "👎")
 
     def get_emojis(self, id: int) -> tuple[str, str]:
         self.c.execute("SELECT upvote, downvote FROM Emojis WHERE guild_id = ?", (id,))
-        return self.c.fetchone()
+        return self.c.fetchone() or self.add_guild(id)
     
     def set_upvote(self, id: int, emoji: str):
         self.c.execute("UPDATE Emojis SET upvote = ? WHERE guild_id = ?", (emoji, id))

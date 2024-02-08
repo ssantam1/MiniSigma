@@ -48,7 +48,7 @@ class Voting(commands.Cog):
                 return "[Deleted User]"
     
     async def process_reaction(self, event: discord.RawReactionActionEvent) -> None:
-        emojis = self.db.get_emojis(event.guild_id) or self.db.add_guild(event.guild_id)
+        emojis = self.db.get_emojis(event.guild_id)
         if str(event.emoji) not in emojis:
             return
 
