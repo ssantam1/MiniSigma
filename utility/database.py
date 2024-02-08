@@ -125,10 +125,10 @@ class Database:
     
     # ========== EMOJI MANAGEMENT ==========
 
-    def add_guild(self, id: int):
+    def add_guild(self, id: int) -> tuple[str, str]:
         self.c.execute("INSERT OR IGNORE INTO Emojis (guild_id, upvote, downvote) VALUES (?, ?, ?)", (id, "👍", "👎"))
         self.conn.commit()
-        return tuple("👍", "👎")
+        return ("👍", "👎")
 
     def get_emojis(self, id: int) -> tuple[str, str]:
         self.c.execute("SELECT upvote, downvote FROM Emojis WHERE guild_id = ?", (id,))
