@@ -42,9 +42,9 @@ class Scanner(commands.Cog):
                 else:
                     raise Exception("Emoji was in vote_strings, but didn't match either case. How did you get here?")
                 
-                iter_diff: datetime.timedelta = message.created_at - channel.created_at
-                pbar.n = iter_diff.days
-                pbar.update()
+            iter_diff: datetime.timedelta = message.created_at - channel.created_at
+            pbar.n = iter_diff.days
+            pbar.update()
 
         pbar.close()
         logger.info(f"Finished scanning channel, upvoted messages: {upvoted_msg_count}, downvoted messages: {downvoted_msg_count}")
