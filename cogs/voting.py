@@ -48,7 +48,7 @@ class Voting(commands.Cog):
                 return "[Deleted User]"
     
     async def process_reaction(self, event: discord.RawReactionActionEvent) -> None:
-        emojis = self.db.get_emojis(event.guild_id)
+        emojis = self.db.get_emojis(event.guild_id) or self.db.add_guild(event.guild_id)
         if str(event.emoji) not in emojis:
             return
 
@@ -196,6 +196,24 @@ class Voting(commands.Cog):
         embed.add_field(name="Biggest Hater:", value=self.db.haters(target.id, 1))
 
         await interaction.response.send_message(content="**WORK IN PROGRESS, NOT DONE**",embed=embed)
+
+    @app_commands.command(name="guild_onboarding", description="Initializes guild settings")
+    async def guild_onboarding(self, interaction: discord.Interaction):
+        self.db.add_guild(interaction.guild_id)
+        emojis = self.db.get_emojis(interaction.guild_id)
+        await interaction.response.send_message(f"Server settings initialized, upvote emoji: {emojis[0]}, downvote emoji: {emojis[1]}")
+
+    @app_commands.command(name="set_upvote", description="Changes the upvote emoji for the guild")
+    async def set_upvote(self, interaction: discord.Interaction, emoji: str):
+        self.db.set_upvote(interaction.guild_id, emoji)
+        await interaction.response.send_message(f"Guild upvote emoji set: {emoji}")
+        logger.info(f"({interaction.guild.name}) Guild upvote emoji changed to {emoji} by {interaction.user.name}")
+        
+    @app_commands.command(name="set_downvote", description="Changes the downvote emoji for the guild")
+    async def set_downvote(self, interaction: discord.Interaction, emoji: str):
+        self.db.set_downvote(interaction.guild_id, emoji)
+        await interaction.response.send_message(f"Guild downvote emoji set: {emoji}")
+        logger.info(f"({interaction.guild.name}) Guild downvote emoji changed to {emoji} by {interaction.user.name}")
 
 async def setup(client: MiniSigma):
     await client.add_cog(Voting(client))

@@ -120,24 +120,6 @@ class Debug(commands.Cog):
         '''Replies with a string, super unsafe lol'''
         await ctx.reply(f"```{emoji}```")
 
-    @app_commands.command(name="guild_onboarding", description="Initializes guild settings")
-    async def guild_onboarding(self, interaction: discord.Interaction):
-        self.db.add_guild(interaction.guild_id)
-        emojis = self.db.get_emojis(interaction.guild_id)
-        await interaction.response.send_message(f"Server settings initialized, upvote emoji: {emojis[0]}, downvote emoji: {emojis[1]}")
-
-    @app_commands.command(name="set_upvote", description="Changes the upvote emoji for the guild")
-    async def set_upvote(self, interaction: discord.Interaction, emoji: str):
-        self.db.set_upvote(interaction.guild_id, emoji)
-        await interaction.response.send_message(f"Guild upvote emoji set: {emoji}")
-        logger.info(f"({interaction.guild.name}) Guild upvote emoji changed to {emoji} by {interaction.user.name}")
-        
-    @app_commands.command(name="set_downvote", description="Changes the downvote emoji for the guild")
-    async def set_downvote(self, interaction: discord.Interaction, emoji: str):
-        self.db.set_downvote(interaction.guild_id, emoji)
-        await interaction.response.send_message(f"Guild downvote emoji set: {emoji}")
-        logger.info(f"({interaction.guild.name}) Guild downvote emoji changed to {emoji} by {interaction.user.name}")
-
     @commands.command()
     async def restart(self, ctx: commands.Context):
         '''Restarts bot'''
