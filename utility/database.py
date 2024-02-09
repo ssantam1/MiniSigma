@@ -135,9 +135,11 @@ class Database:
         return self.c.fetchone() or self.add_guild(id)
     
     def set_upvote(self, id: int, emoji: str):
+        self.add_guild(id)
         self.c.execute("UPDATE Emojis SET upvote = ? WHERE guild_id = ?", (emoji, id))
         self.conn.commit()
 
     def set_downvote(self, id: int, emoji: str):
+        self.add_guild(id)
         self.c.execute("UPDATE Emojis SET downvote = ? WHERE guild_id = ?", (emoji, id))
         self.conn.commit()
