@@ -159,7 +159,7 @@ class Voting(commands.Cog):
 
         for user in users:
             try:
-                member = ctx.guild.get_member(user(0))
+                member = ctx.guild.get_member(user[0])
                 iq = user[2] - user[3] + user[4]
                 if member is not None:
                     print(f"Appending {type(member)}: {member}, {type(iq)}: iq")
