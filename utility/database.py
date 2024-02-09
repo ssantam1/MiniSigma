@@ -103,10 +103,6 @@ class Database:
     def list_fans(self) -> list[tuple[int, int, int, int]]:
         self.c.execute("SELECT * FROM FansAndHaters")
         return self.c.fetchall()
-    
-    def list_emoji(self) -> list[tuple[int, str, str]]:
-        self.c.execute("SELECT * FROM Emojis")
-        return self.c.fetchall()
 
     # ========== STATISTICS ==========
         
@@ -150,3 +146,7 @@ class Database:
         self.add_guild(id)
         self.c.execute("UPDATE Emojis SET downvote = ? WHERE guild_id = ?", (emoji, id))
         self.conn.commit()
+
+    def list_emoji(self) -> list[tuple[int, str, str]]:
+        self.c.execute("SELECT * FROM Emojis")
+        return self.c.fetchall()
