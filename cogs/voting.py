@@ -100,7 +100,7 @@ class Voting(commands.Cog):
         names = ""
         scores = ""
 
-        for id, score in db_list:
+        for (id, name, score) in db_list:
             name = await self.get_nick_or_name(interaction, id)
             names += f"{name}\n"
             scores += f'{score}\n'
