@@ -44,7 +44,6 @@ class Database:
     # ========== USER MANAGEMENT ==========
     
     def add_user(self, id: int, name: str):
-        # TODO: Add upvotes, downvotes, offset
         self.c.execute("INSERT OR IGNORE INTO Users (id, username, upvotes, downvotes, offset) VALUES (?, ?, ?, ?, ?)", (id, name, 0, 0, 100))
         self.conn.commit()
 
@@ -67,14 +66,14 @@ class Database:
     
     def upvote_user(self, id: int, change: int, voter_id: int) -> int:
         user = self.get_user(id)
-        self.c.execute("UPDATE Users SET upvotes = ? WHERE id = ?", (user[2] + change, id))
+        self.c.execute("UPDATE Users SET upvotes = ? WHERE id = ?", (user(2) + change, id))
         self.conn.commit()
         self.update_fans(id, change, voter_id)
         return self.get_iq(id)
     
     def downvote_user(self, id: int, change: int, voter_id: int) -> int:
         user = self.get_user(id)
-        self.c.execute("UPDATE Users SET downvotes = ? WHERE id = ?", (user[3] + change, id))
+        self.c.execute("UPDATE Users SET downvotes = ? WHERE id = ?", (user(3) + change, id))
         self.conn.commit()
         self.update_haters(id, change, voter_id)
         return self.get_iq(id)

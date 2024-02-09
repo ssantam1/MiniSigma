@@ -33,11 +33,17 @@ class Scanner(commands.Cog):
 
                 if emoji == upvote:
                     upvoted_msg_count += 1
-                    await self.process_vote(reaction, message.author.id, self.db.upvote_user)
+                    async for voter in reaction.users():
+                        if voter.id == message.author.id:
+                            continue
+                        self.db.upvote_user(message.author.id, 1, voter.id)
 
                 elif emoji == downvote:
                     downvoted_msg_count += 1
-                    await self.process_vote(reaction, message.author.id, self.db.downvote_user)
+                    async for voter in reaction.users():
+                        if voter.id == message.author.id:
+                            continue
+                        self.db.downvote_user(message.author.id, 1, voter.id)
 
                 else:
                     raise Exception("Emoji was in vote_strings, but didn't match either case. How did you get here?")
@@ -48,12 +54,6 @@ class Scanner(commands.Cog):
 
         pbar.close()
         logger.info(f"Finished scanning channel, upvoted messages: {upvoted_msg_count}, downvoted messages: {downvoted_msg_count}")
-
-    async def process_vote(self, reaction: discord.Reaction, author_id: int, vote_func) -> None:
-        async for voter in reaction.users():
-            if voter.id == author_id:
-                continue
-            vote_func(author_id, 1, voter.id)
 
     @commands.command()
     async def scan_target(self, ctx: commands.Context, channel: discord.TextChannel):
