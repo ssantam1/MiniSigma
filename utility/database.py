@@ -48,7 +48,7 @@ class Database:
         self.conn.commit()
 
     def update_username(self, id: int, new_username: str):
-        self.c.execute("INSERT OR IGNORE INTO Users (id, username) VALUES (?, ?)", (id, new_username, ))
+        self.add_user(id, new_username)
         self.c.execute("UPDATE Users SET username = ? WHERE id = ?", (new_username, id))
         self.conn.commit()
 
@@ -66,14 +66,14 @@ class Database:
     
     def upvote_user(self, id: int, change: int, voter_id: int) -> int:
         user = self.get_user(id)
-        self.c.execute("UPDATE Users SET upvotes = ? WHERE id = ?", (user(2) + change, id))
+        self.c.execute("UPDATE Users SET upvotes = ? WHERE id = ?", (user[2] + change, id))
         self.conn.commit()
         self.update_fans(id, change, voter_id)
         return self.get_iq(id)
     
     def downvote_user(self, id: int, change: int, voter_id: int) -> int:
         user = self.get_user(id)
-        self.c.execute("UPDATE Users SET downvotes = ? WHERE id = ?", (user(3) + change, id))
+        self.c.execute("UPDATE Users SET downvotes = ? WHERE id = ?", (user[3] + change, id))
         self.conn.commit()
         self.update_haters(id, change, voter_id)
         return self.get_iq(id)
@@ -99,6 +99,14 @@ class Database:
             new_score = result[3] + change
             self.c.execute("UPDATE FansAndHaters SET downvotes = ? WHERE user_id = ? AND fan_or_hater_id = ?", (new_score, id, voter_id))
         self.conn.commit()
+
+    def list_fans(self) -> list[tuple[int, int, int, int]]:
+        self.c.execute("SELECT * FROM FansAndHaters")
+        return self.c.fetchall()
+    
+    def list_emoji(self) -> list[tuple[int, str, str]]:
+        self.c.execute("SELECT * FROM Emojis")
+        return self.c.fetchall()
 
     # ========== STATISTICS ==========
         

@@ -121,6 +121,21 @@ class Debug(commands.Cog):
         await ctx.reply(f"```{emoji}```")
 
     @commands.command()
+    async def dump_users(self, ctx: commands.Context):
+        '''Replies with the user database'''
+        await ctx.reply(self.db.list_users())
+
+    @commands.command()
+    async def dump_fans(self, ctx: commands.Context):
+        '''Replies with the fan database'''
+        await ctx.reply(self.db.list_fans())
+
+    @commands.command()
+    async def dump_emojis(self, ctx: commands.Context):
+        '''Replies with the emoji database'''
+        await ctx.reply(self.db.list_emojis())
+
+    @commands.command()
     async def restart(self, ctx: commands.Context):
         '''Restarts bot'''
         subprocess.Popen([sys.executable, "bot.py"])
