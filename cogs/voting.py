@@ -53,26 +53,26 @@ class Voting(commands.Cog):
             return
 
         channel = self.client.get_channel(event.channel_id)
-        message = await channel.fetch_message(event.message_id) # API Call number 1, +150ms
-        target: discord.User = message.author
-        voter_id = event.user_id
+        message = await channel.fetch_message(event.message_id)
 
-        if target.id == voter_id:
+        target: discord.User = message.author
+        voter = message.guild.get_member(event.user_id)
+
+        if target.id == voter.id:
             return
 
         count_change = 1 if event.event_type == "REACTION_ADD" else -1
         if str(event.emoji) == emojis[0]:
-            new_user_score = self.db.upvote_user(target.id, count_change, voter_id)
+            new_user_score = self.db.upvote_user(target.id, count_change, voter.id)
             vote_type = "upvote"
         else:
-            new_user_score = self.db.downvote_user(target.id, count_change, voter_id)
+            new_user_score = self.db.downvote_user(target.id, count_change, voter.id)
             vote_type = "downvote"
         self.db.update_username(target.id, target.name)
+        self.db.update_username(voter.id, voter.name)
 
-        await nick_update(target, new_user_score) # API Call number 2, +150ms
-        # Total about 350ms after two API calls and database access
-        log_string = f"{target.name} {event.event_type} {vote_type}: {message.guild.get_member(voter_id)} ({message.channel}), Score: {new_user_score}" 
-        logger.info(log_string)
+        await nick_update(target, new_user_score)
+        logger.info(f"{target} {event.event_type} {vote_type}: {voter} ({message.channel}), Score: {new_user_score}")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, RawReactionActionEvent: discord.RawReactionActionEvent):
