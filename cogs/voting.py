@@ -85,14 +85,16 @@ class Voting(commands.Cog):
     async def user_sentiment(self, interaction: discord.Interaction, target: discord.Member) -> discord.Embed:
         '''Returns an embed with a list of target's fans or haters, based on context commmand'''
         target = interaction.user if target == None else target
-    
+
         command = interaction.command.name
         if command == "fans":
             vote = "Upvotes:"
-            db_list = self.db.fans(target.id, 256)
+            db_list = self.db.fans(target.id, 5)
         else:
             vote = "Downvotes:"
-            db_list = self.db.haters(target.id, 256)
+            db_list = self.db.haters(target.id, 5)
+
+        logger.info(f"Creating embed for {target.name}'s {command}")
 
         embed = discord.Embed(title=f"{target.nick or target.name}'s {command.capitalize()}:", color=config.EMBED_COLOR)
         embed.set_thumbnail(url=target.display_avatar.url)
@@ -100,10 +102,14 @@ class Voting(commands.Cog):
         names = ""
         scores = ""
 
+        logger.info(f"Entering loop...")
+
         for (id, name, score) in db_list:
             name = await self.get_nick_or_name(interaction, id)
             names += f"{name}\n"
             scores += f'{score}\n'
+
+        logger.info(f"Loop finished, adding fields...")
 
         embed.add_field(name="User:", value=names)
         embed.add_field(name=vote, value=scores)
