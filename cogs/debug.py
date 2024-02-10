@@ -123,7 +123,7 @@ class Debug(commands.Cog):
     
     async def send_txt(self, ctx: commands.Context, list: list):
         '''Creates a txt file with the string and sends it to a channel before deleting it'''
-        with open("temp.txt", "w") as f:
+        with open("temp.txt", "w", encoding='utf-8') as f:
             # create string, where each element is a new line
             string = "\n".join([str(x) for x in list])
             f.write(string)
