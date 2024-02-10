@@ -94,22 +94,16 @@ class Voting(commands.Cog):
             vote = "Downvotes:"
             db_list = self.db.haters(target.id, 5)
 
-        logger.info(f"Creating embed for {target.name}'s {command}")
-
         embed = discord.Embed(title=f"{target.nick or target.name}'s {command.capitalize()}:", color=config.EMBED_COLOR)
         embed.set_thumbnail(url=target.display_avatar.url)
 
         names = ""
         scores = ""
 
-        logger.info(f"Entering loop...")
-
         for (id, name, score) in db_list:
             name = await self.get_nick_or_name(interaction, id)
             names += f"{name}\n"
             scores += f'{score}\n'
-
-        logger.info(f"Loop finished, adding fields...")
 
         embed.add_field(name="User:", value=names)
         embed.add_field(name=vote, value=scores)
@@ -142,11 +136,11 @@ class Voting(commands.Cog):
         usernames: list[str] = []
         scores: list[str] = []
 
+        logger.info()
+
         for i in range(len(top)):
             user = top[i]
-            id = user[0]
-            display_name = await self.get_nick_or_name(interact, id)
-            display_name = nick_without_iq(display_name)
+            display_name = user[1]
 
             ranks.append(str(i+1))
             usernames.append(display_name)

@@ -15,6 +15,16 @@ class Scanner(commands.Cog):
         self.client = client
         self.db: DB.Database = client.db
 
+    @commands.command()
+    async def fill_names(self, _: commands.Context):
+        '''Go through the database and fill in the names of users'''
+        for user in self.db.list_users():
+            try:
+                member = await self.client.fetch_user(user[0])
+                self.db.update_username(user[0], member.name)
+            except discord.errors.NotFound:
+                self.db.update_username(user[0], "Unknown")
+
     async def scan_channel(self, channel: discord.TextChannel) -> None:
         (upvote, downvote) = self.db.get_emojis(channel.guild.id)
         end_pt = datetime.datetime.now(datetime.timezone.utc)
@@ -75,6 +85,9 @@ class Scanner(commands.Cog):
             await self.scan_channel(channel)
             prog_string += f"- Finished scan on {channel.name}!\n"
             await prog_message.edit(content=prog_string)
+
+        await prog_message.edit(content=prog_string + "Historical recording complete, populating data.\n")
+        await self.fill_names(None)
 
         await prog_message.edit(content=prog_string + "✅ Scan done! Results recorded in log.")
 
