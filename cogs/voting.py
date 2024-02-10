@@ -162,7 +162,6 @@ class Voting(commands.Cog):
                 member = ctx.guild.get_member(user[0])
                 iq = user[2] - user[3] + user[4]
                 if member is not None:
-                    print(f"Appending {type(member)}: {member}, {type(iq)}: iq")
                     tasklist.append(nick_update(member, iq))
             except:
                 print(f"Couldn't fetch {user(1)}'s member object, skipping...")

@@ -147,6 +147,6 @@ class Database:
         self.c.execute("UPDATE Emojis SET downvote = ? WHERE guild_id = ?", (emoji, id))
         self.conn.commit()
 
-    def list_emoji(self) -> list[tuple[int, str, str]]:
+    def list_emojis(self) -> list[tuple[int, str, str]]:
         self.c.execute("SELECT * FROM Emojis")
         return self.c.fetchall()
