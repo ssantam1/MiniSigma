@@ -136,15 +136,13 @@ class Voting(commands.Cog):
         usernames: list[str] = []
         scores: list[str] = []
 
-        logger.info()
-
         for i in range(len(top)):
             user = top[i]
             display_name = user[1]
 
             ranks.append(str(i+1))
             usernames.append(display_name)
-            scores.append(str(self.db.get_iq(id)))
+            scores.append(str(self.db.get_iq(user[0])))
 
         embed.add_field(name="Rank", value="\n".join(ranks), inline=True)
         embed.add_field(name="Name", value="\n".join(usernames), inline=True)
