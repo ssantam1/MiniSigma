@@ -4,6 +4,7 @@ from discord import app_commands
 from bot import MiniSigma
 import subprocess
 import sys
+import os
 import time
 import datetime
 import logging
@@ -119,21 +120,32 @@ class Debug(commands.Cog):
     async def emojiname(self, ctx: commands.Context, emoji: str):
         '''Replies with a string, super unsafe lol'''
         await ctx.reply(f"```{emoji}```")
+    
+    async def send_txt(self, ctx: commands.Context, list: list):
+        '''Creates a txt file with the string and sends it to a channel before deleting it'''
+        with open("temp.txt", "w") as f:
+            # create string, where each element is a new line
+            string = "\n".join([str(x) for x in list])
+            f.write(string)
+        with open("temp.txt", "rb") as f:
+            file = discord.File(f, "temp.txt")
+            await ctx.reply(file=file)
+        os.remove("temp.txt")
 
     @commands.command()
     async def dump_users(self, ctx: commands.Context):
         '''Replies with the user database'''
-        await ctx.reply(self.db.list_users())
+        await self.send_txt(ctx, self.db.list_users())
 
     @commands.command()
     async def dump_fans(self, ctx: commands.Context):
         '''Replies with the fan database'''
-        await ctx.reply(self.db.list_fans())
+        await self.send_txt(ctx, self.db.list_fans())
 
     @commands.command()
     async def dump_emojis(self, ctx: commands.Context):
         '''Replies with the emoji database'''
-        await ctx.reply(self.db.list_emojis())
+        await self.send_txt(ctx, self.db.list_emojis())
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
