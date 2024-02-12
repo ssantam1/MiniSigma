@@ -36,8 +36,6 @@ class Debug(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
-   
-
     @commands.command()
     async def messages_in_channel(self, ctx: commands.Context):
         '''Replies with the number of messages in the channel'''
@@ -46,10 +44,11 @@ class Debug(commands.Cog):
         perf_start = time.perf_counter()
 
         hist = ctx.channel.history(limit=None, after=ctx.channel.created_at, before=ctx.message.created_at)
-        async for _ in hist:
+        
+        hist = [message async for message in hist]
+
+        for _ in hist:
             message_count += 1
-            if message_count % 100:
-                print(f"Messages Scanned: {message_count}")
 
         perf_end = time.perf_counter()
         perf_time = perf_end - perf_start
@@ -76,11 +75,6 @@ class Debug(commands.Cog):
         pbar.close()
         perf_time = time.perf_counter() - perf_start
         await ctx.reply(f"Flattening {len(hist)} messages done in{perf_time: .2f} seconds. First poster: {hist[0].author.name}")
-
-    @commands.command()
-    async def send_me_data(self, ctx: commands.Context):
-        '''Sends the user database'''
-        await ctx.send("", file=discord.File("users.json"))
 
     @app_commands.command(name="uptime", description="Displays the last time the bot was turned on")
     async def uptime(self, interaction: discord.Interaction):
