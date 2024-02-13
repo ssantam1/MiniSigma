@@ -5,6 +5,7 @@ import utility.database as DB
 from bot import MiniSigma
 from tqdm import tqdm
 import logging
+import time
 
 logger = logging.getLogger("client.scanner")
 
@@ -64,6 +65,27 @@ class Scanner(commands.Cog):
 
         pbar.close()
         logger.info(f"Finished scanning channel, upvoted messages: {upvoted_msg_count}, downvoted messages: {downvoted_msg_count}")
+
+    async def enter_reactions(self, guild: discord.Guild):
+        (upvote, downvote) = self.db.get_emojis(guild.id)
+        for channel in guild.text_channels:
+            async for message in channel.history(limit=None, after=channel.created_at, before=datetime.datetime.now()):
+                for reaction in message.reactions:
+                    if str(reaction.emoji) not in (upvote, downvote):
+                        continue
+
+                    async for voter in reaction.users():
+                        if voter.id == message.author.id:
+                            continue
+                        self.db.add_reaction(voter.id, message.author.id, message.id, channel.id, guild.id, 1 if str(reaction.emoji) == upvote else -1, message.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+
+    @commands.command()
+    async def enter_reactions_guild(self, ctx: commands.Context):
+        await ctx.send(f"Entering reactions for guild: {ctx.guild.name}")
+        start_time = time.perf_counter()
+        await self.enter_reactions(ctx.guild)
+        end_time = time.perf_counter()
+        await ctx.reply(f"Reactions entered! Total time: {end_time - start_time:.2f} seconds.")
 
     @commands.command()
     async def scan_target(self, ctx: commands.Context, channel: discord.TextChannel):
