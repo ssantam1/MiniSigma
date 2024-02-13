@@ -39,6 +39,21 @@ class Database:
                 downvote TEXT
             )''')
         
+        self.c.execute('''
+            CREATE TABLE IF NOT EXISTS Reactions (
+                voter_id INTEGER,
+                author_id INTEGER,
+                message_id INTEGER,
+                channel_id INTEGER,
+                guild_id INTEGER,
+                vote_type INTEGER,
+                timestamp TEXT,
+                PRIMARY KEY (voter_id, message_id, vote_type),
+                FOREIGN KEY (voter_id) REFERENCES Users(id),
+                FOREIGN KEY (author_id) REFERENCES Users(id),
+                FOREIGN KEY (guild_id) REFERENCES Emojis(guild_id)
+            )''')
+        
         self.conn.commit()
 
     # ========== USER MANAGEMENT ==========
@@ -150,3 +165,34 @@ class Database:
     def list_emojis(self) -> list[tuple[int, str, str]]:
         self.c.execute("SELECT * FROM Emojis")
         return self.c.fetchall()
+
+    # ========== REACTION MANAGEMENT ==========
+
+    def add_reaction(self, voter_id: int, author_id: int, message_id: int, channel_id: int, guild_id: int, vote_type: int, timestamp: str):
+        self.c.execute("INSERT OR IGNORE INTO Reactions (voter_id, author_id, message_id, channel_id, guild_id, vote_type, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)", (voter_id, author_id, message_id, channel_id, guild_id, vote_type, timestamp))
+        self.conn.commit()
+
+    def remove_reaction(self, voter_id: int, message_id: int, vote_type: int):
+        self.c.execute("DELETE FROM Reactions WHERE voter_id = ? AND message_id = ? AND vote_type = ?", (voter_id, message_id, vote_type))
+        self.conn.commit()
+
+    def list_reactions(self) -> list[tuple[int, int, int, int, int, int, str]]:
+        self.c.execute("SELECT * FROM Reactions")
+        return self.c.fetchall()
+    
+    def user_reactions(self, id: int) -> list[tuple[int, int, int, int, int, str]]:
+        self.c.execute("SELECT * FROM Reactions WHERE voter_id = ?", (id,))
+        return self.c.fetchall()
+    
+    def user_messages(self, id: int) -> list[tuple[int, int, int, int, int, str]]:
+        self.c.execute("SELECT * FROM Reactions WHERE author_id = ?", (id,))
+        return self.c.fetchall()
+    
+    def best_of(self, id: int, num: int) -> list[tuple[int, int, int, int]]:
+        self.c.execute("SELECT message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE author_id = ? GROUP BY message_id ORDER BY SUM(vote_type) DESC LIMIT ?", (id, num))
+        return self.c.fetchall()
+    
+    def worst_of(self, id: int, num: int) -> list[tuple[int, int, int, int]]:
+        self.c.execute("SELECT message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE author_id = ? GROUP BY message_id ORDER BY SUM(vote_type) ASC LIMIT ?", (id, num))
+        return self.c.fetchall()
+    

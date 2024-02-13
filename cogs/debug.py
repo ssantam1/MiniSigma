@@ -142,6 +142,11 @@ class Debug(commands.Cog):
         await self.send_txt(ctx, self.db.list_emojis())
 
     @commands.command()
+    async def dump_reactions(self, ctx: commands.Context):
+        '''Replies with the reaction database'''
+        await self.send_txt(ctx, self.db.list_reactions())
+
+    @commands.command()
     async def restart(self, ctx: commands.Context):
         '''Restarts bot'''
         subprocess.Popen([sys.executable, "bot.py"])
