@@ -68,9 +68,13 @@ class Scanner(commands.Cog):
 
     async def enter_reactions(self, guild: discord.Guild):
         (upvote, downvote) = self.db.get_emojis(guild.id)
+        
         for channel in guild.text_channels:
+            logger.info(f"Scanning channel: {channel.name}, from creation date: {channel.created_at.strftime('%Y-%m-%d')}")
+
             async for message in channel.history(limit=None, after=channel.created_at, before=datetime.datetime.now()):
                 for reaction in message.reactions:
+
                     if str(reaction.emoji) not in (upvote, downvote):
                         continue
 
@@ -79,13 +83,18 @@ class Scanner(commands.Cog):
                             continue
                         self.db.add_reaction(voter.id, message.author.id, message.id, channel.id, guild.id, 1 if str(reaction.emoji) == upvote else -1, message.created_at.strftime('%Y-%m-%d %H:%M:%S'))
 
+        logger.info(f"Finished scanning guild: {guild.name}")
+
     @commands.command()
     async def enter_reactions_guild(self, ctx: commands.Context):
+        logger.info(f"{ctx.author.name} issued !enter_reactions_guild, ({ctx.channel})")
         await ctx.send(f"Entering reactions for guild: {ctx.guild.name}")
+
         start_time = time.perf_counter()
         await self.enter_reactions(ctx.guild)
-        end_time = time.perf_counter()
-        await ctx.reply(f"Reactions entered! Total time: {end_time - start_time:.2f} seconds.")
+        total_time = time.perf_counter() - start_time
+        
+        await ctx.reply(f"Reactions entered! Total time: {total_time:.2f} seconds.")
 
     @commands.command()
     async def scan_target(self, ctx: commands.Context, channel: discord.TextChannel):
