@@ -134,6 +134,14 @@ class Voting(commands.Cog):
 
         await interaction.response.send_message(embed=discord.Embed(title=f"{target.nick or target.name}'s Best Posts:", color=config.EMBED_COLOR).set_thumbnail(url=target.display_avatar.url).add_field(name=f"Posts:", value="\n".join([f"Score: {score} [Jump to message]({self.message_url(m_id, c_id, g_id)})" for (m_id, c_id, g_id, score) in self.db.best_of(target.id, num)])))
 
+    @app_commands.command(name="worstof", description="Displays a list of the worst posts by a user")
+    @app_commands.describe(num="The max posts you want to display; Defaults to 5")
+    async def worstof(self, interaction: discord.Interaction, target: discord.Member, num: int = 5):
+        logger.info(f"{interaction.user.name} issued /worstof {target} {num}, ({interaction.channel})")
+        target = interaction.user if target == None else target
+
+        await interaction.response.send_message(embed=discord.Embed(title=f"{target.nick or target.name}'s Worst Posts:", color=config.EMBED_COLOR).set_thumbnail(url=target.display_avatar.url).add_field(name=f"Posts:", value="\n".join([f"Score: {score} [Jump to message]({self.message_url(m_id, c_id, g_id)})" for (m_id, c_id, g_id, score) in self.db.worst_of(target.id, num)])))
+
     @app_commands.command(name="leaderboard", description="Displays top n scoring individuals")
     @app_commands.describe(num="Number of users to display; Defaults to 5")
     async def leaderboard(self, interact: discord.Interaction, num: int = 5):
