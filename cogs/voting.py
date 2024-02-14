@@ -123,21 +123,16 @@ class Voting(commands.Cog):
         embed = await self.user_sentiment(interaction, target)
         await interaction.response.send_message(embed=embed)
 
+    def message_url(self, message_id: int, channel_id: int, guild_id: int) -> str:
+        return f"https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
+
     @app_commands.command(name="bestof", description="Displays a list of the top posts by a user")
     @app_commands.describe(num="The max posts you want to display; Defaults to 5")
     async def bestof(self, interaction: discord.Interaction, target: discord.Member, num: int = 5):
         logger.info(f"{interaction.user.name} issued /bestof {target} {num}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        embed = discord.Embed(title=f"{target.nick or target.name}'s Best Posts:", color=config.EMBED_COLOR)
-        embed.set_thumbnail(url=target.display_avatar.url)
-
-        posts = self.db.best_of(target.id, num)
-        for (message_id, channel_id, guild_id, score) in posts:
-            message_url = f"https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
-            embed.add_field(name=f"Score: {score}", value=f"[Jump to message]({message_url})")
-
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=discord.Embed(title=f"{target.nick or target.name}'s Best Posts:", color=config.EMBED_COLOR).set_thumbnail(url=target.display_avatar.url).add_field(name=f"Posts:", value="\n".join([f"Score: {score} [Jump to message]({self.message_url(m_id, c_id, g_id)})" for (m_id, c_id, g_id, score) in self.db.best_of(target.id, num)])))
 
     @app_commands.command(name="leaderboard", description="Displays top n scoring individuals")
     @app_commands.describe(num="Number of users to display; Defaults to 5")
