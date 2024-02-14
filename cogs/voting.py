@@ -201,7 +201,7 @@ class Voting(commands.Cog):
         embed.add_field(name="MiniSigma Guilds:", value="\n".join([guild.name for guild in target.mutual_guilds]))
         embed.add_field(name="Highest Role:", value=target.top_role)
 
-        user: tuple = self.db.get_user(target)
+        user: tuple = self.db.get_user(target.id)
         embed.add_field(name="**MiniSigma Stats:**", value="")
         embed.add_field(name="IQ Score:", value=user[2] - user[3] + user[4])
         embed.add_field(name="Upvotes:", value=user[2])
