@@ -133,26 +133,24 @@ class Voting(commands.Cog):
         embed.add_field(name="Posts:", value="\n".join(links))
         return embed
 
-    @app_commands.command(name="bestof", description="Displays a list of the top posts by a user")
-    @app_commands.describe(num="The max posts you want to display; Defaults to 5")
-    async def bestof(self, interaction: discord.Interaction, target: discord.Member, num: int = 5):
-        logger.info(f"{interaction.user.name} issued /bestof {target} {num}, ({interaction.channel})")
+    @app_commands.command(name="bestof", description="Displays a list of the top 5 posts by a user")
+    async def bestof(self, interaction: discord.Interaction, target: discord.Member = None):
+        logger.info(f"{interaction.user.name} issued /bestof {target}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        best_posts = self.db.best_of(target.id, num)
+        best_posts = self.db.best_of(target.id, 5)
         thumbnail = target.display_avatar.url
         title = f"{target.nick or target.name}'s Best Posts:"
         embed = self.message_list_embed(title=title, thumbnail=thumbnail, message_list=best_posts)
 
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="worstof", description="Displays a list of the worst posts by a user")
-    @app_commands.describe(num="The max posts you want to display; Defaults to 5")
-    async def worstof(self, interaction: discord.Interaction, target: discord.Member, num: int = 5):
-        logger.info(f"{interaction.user.name} issued /worstof {target} {num}, ({interaction.channel})")
+    @app_commands.command(name="worstof", description="Displays a list of the worst 5 posts by a user")
+    async def worstof(self, interaction: discord.Interaction, target: discord.Member = None):
+        logger.info(f"{interaction.user.name} issued /worstof {target}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        worst_posts = self.db.worst_of(target.id, num)
+        worst_posts = self.db.worst_of(target.id, 5)
         thumbnail = target.display_avatar.url
         title = f"{target.nick or target.name}'s Worst Posts:"
         embed = self.message_list_embed(title=title, thumbnail=thumbnail, message_list=worst_posts)
