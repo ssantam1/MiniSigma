@@ -126,13 +126,25 @@ class Voting(commands.Cog):
     def message_url(self, message_id: int, channel_id: int, guild_id: int) -> str:
         return f"https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
 
+    def message_list_embed(self, title: str, thumbnail: str, message_list: list[tuple[int, int, int, int]]) -> discord.Embed:
+        embed = discord.Embed(title=title, color=config.EMBED_COLOR)
+        links = [f"Score: {score} [Jump to message]({self.message_url(m_id, c_id, g_id)})" for (m_id, c_id, g_id, score) in message_list]
+        embed.set_thumbnail(url=thumbnail)
+        embed.add_field(name="Posts:", value="\n".join(links))
+        return embed
+
     @app_commands.command(name="bestof", description="Displays a list of the top posts by a user")
     @app_commands.describe(num="The max posts you want to display; Defaults to 5")
     async def bestof(self, interaction: discord.Interaction, target: discord.Member, num: int = 5):
         logger.info(f"{interaction.user.name} issued /bestof {target} {num}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        await interaction.response.send_message(embed=discord.Embed(title=f"{target.nick or target.name}'s Best Posts:", color=config.EMBED_COLOR).set_thumbnail(url=target.display_avatar.url).add_field(name=f"Posts:", value="\n".join([f"Score: {score} [Jump to message]({self.message_url(m_id, c_id, g_id)})" for (m_id, c_id, g_id, score) in self.db.best_of(target.id, num)])))
+        best_posts = self.db.best_of(target.id, num)
+        thumbnail = target.display_avatar.url
+        title = f"{target.nick or target.name}'s Best Posts:"
+        embed = self.message_list_embed(title=title, thumbnail=thumbnail, message_list=best_posts)
+
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="worstof", description="Displays a list of the worst posts by a user")
     @app_commands.describe(num="The max posts you want to display; Defaults to 5")
@@ -140,7 +152,12 @@ class Voting(commands.Cog):
         logger.info(f"{interaction.user.name} issued /worstof {target} {num}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        await interaction.response.send_message(embed=discord.Embed(title=f"{target.nick or target.name}'s Worst Posts:", color=config.EMBED_COLOR).set_thumbnail(url=target.display_avatar.url).add_field(name=f"Posts:", value="\n".join([f"Score: {score} [Jump to message]({self.message_url(m_id, c_id, g_id)})" for (m_id, c_id, g_id, score) in self.db.worst_of(target.id, num)])))
+        worst_posts = self.db.worst_of(target.id, num)
+        thumbnail = target.display_avatar.url
+        title = f"{target.nick or target.name}'s Worst Posts:"
+        embed = self.message_list_embed(title=title, thumbnail=thumbnail, message_list=worst_posts)
+
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="leaderboard", description="Displays top n scoring individuals")
     @app_commands.describe(num="Number of users to display; Defaults to 5")
@@ -170,7 +187,6 @@ class Voting(commands.Cog):
 
     @commands.command()
     async def manual_save(self, ctx: commands.Context):
-        '''Gods least suboptimal nickname iteration'''
         tasklist = []
         users = self.db.list_users()
 
