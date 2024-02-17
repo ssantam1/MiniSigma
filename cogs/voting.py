@@ -158,10 +158,11 @@ class Voting(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="top_messages", description="Top 5 most popular messages registered by the bot")
-    async def top_messages(self, interaction: discord.Interaction):
+    @app_commands.describe(guild_only="Set to true to only display messages from the current server")
+    async def top_messages(self, interaction: discord.Interaction, guild_only: bool = False):
         logger.info(f"{interaction.user.name} issued /top_messages, ({interaction.channel})")
 
-        top_messages: list[tuple[str, int, int, int, int]] = self.db.top_messages(5)
+        top_messages: list[tuple[str, int, int, int, int]] = self.db.top_messages(interaction.guild_id if guild_only else None)
 
         embed = discord.Embed(title="Top Messages:", color=config.EMBED_COLOR)
         embed.set_thumbnail(url=self.client.user.display_avatar.url)
