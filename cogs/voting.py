@@ -157,6 +157,22 @@ class Voting(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
+    @app_commands.command(name="top_messages", description="Top 5 most popular messages registered by the bot")
+    async def top_messages(self, interaction: discord.Interaction):
+        logger.info(f"{interaction.user.name} issued /top_messages, ({interaction.channel})")
+
+        top_messages: list[tuple[str, int, int, int, int]] = self.db.top_messages(5)
+
+        embed = discord.Embed(title="Top Messages:", color=config.EMBED_COLOR)
+        embed.set_thumbnail(url=self.client.user.display_avatar.url)
+
+        for (author_id, m_id, c_id, g_id, score) in top_messages:
+            author_name: str = await self.get_nick_or_name(interaction, author_id)
+            message_url = self.message_url(m_id, c_id, g_id)
+            embed.add_field(name=f"Score: {score}", value=f"{author_name}\n[Jump to message]({message_url})", inline=False)
+
+        await interaction.response.send_message(embed=embed)
+
     @app_commands.command(name="leaderboard", description="Displays top n scoring individuals")
     @app_commands.describe(num="Number of users to display; Defaults to 5")
     async def leaderboard(self, interact: discord.Interaction, num: int = 5):
