@@ -196,6 +196,10 @@ class Database:
         self.c.execute("SELECT message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE author_id = ? GROUP BY message_id ORDER BY SUM(vote_type) ASC LIMIT ?", (id, num))
         return self.c.fetchall()
     
-    def top_messages(self, num: int) -> list[tuple[str, int, int, int, int]]:
-        self.c.execute("SELECT author_id, message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions GROUP BY message_id ORDER BY SUM(vote_type) DESC LIMIT ?", (num,))
+    def top_messages(self, guild_id: int = None) -> list[tuple[str, int, int, int, int]]:
+        if guild_id is not None:
+            self.c.execute("SELECT author_id, message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE guild_id = ? GROUP BY message_id ORDER BY SUM(vote_type) DESC LIMIT 5", (guild_id,))
+        else:
+            self.c.execute("SELECT author_id, message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions GROUP BY message_id ORDER BY SUM(vote_type) DESC LIMIT 5")
+            
         return self.c.fetchall()
