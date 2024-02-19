@@ -9,23 +9,23 @@ import config
 from bot import MiniSigma
 
 def nick_without_iq(raw_nick: str) -> str:
-        '''Removes iq score from the end of nickname strings'''
-        nick_sans_iq: str = re.sub(r"\s*\([^)]*\)$", "", raw_nick)
-        return nick_sans_iq
+    '''Removes iq score from the end of nickname strings'''
+    nick_sans_iq: str = re.sub(r"\s*\([^)]*\)$", "", raw_nick)
+    return nick_sans_iq
 
 async def nick_update(member: discord.Member, iq_score: int) -> None:
-        '''Update a member's nick with a new score'''
-        try:
-            current_nick = member.nick or member.name
-        except AttributeError:
-            current_nick = member.name
-            
-        nick_sans_iq = nick_without_iq(current_nick)
-        new_nick = nick_sans_iq + (f" ({iq_score} IQ)")
-        try:
-            await member.edit(nick=new_nick)
-        except discord.errors.Forbidden:
-            print(f"Unable to update {nick_sans_iq}'s nick, new score is {iq_score}")
+    '''Update a member's nick with a new score'''
+    try:
+        current_nick = member.nick or member.name
+    except AttributeError:
+        current_nick = member.name
+        
+    nick_sans_iq = nick_without_iq(current_nick)
+    new_nick = nick_sans_iq + (f" ({iq_score} IQ)")
+    try:
+        await member.edit(nick=new_nick)
+    except discord.errors.Forbidden:
+        print(f"Unable to update {nick_sans_iq}'s nick, new score is {iq_score}")
 
 logger = logging.getLogger("client")
 
@@ -39,6 +39,7 @@ class ListPaginator(discord.ui.View):
         self.update_buttons()
 
     def update_buttons(self):
+        '''Updates the buttons to reflect the current page'''
         if self.current_page <= 1:
             self.first_button.disabled = True
             self.prev_button.disabled = True
@@ -54,6 +55,7 @@ class ListPaginator(discord.ui.View):
             self.last_button.disabled = False
 
     def update_embed(self):
+        '''Updates the embed with the current page of data'''
         page = self.current_page - 1
         start = int(page * 5)
         end = int(start + 5)
@@ -72,21 +74,25 @@ class ListPaginator(discord.ui.View):
 
     @discord.ui.button(label="", emoji="⏮️", row=0)
     async def first_button(self, interaction: discord.Interaction, _: discord.Button):
+        '''Go to the first page of the list'''
         self.current_page = 1
         await interaction.response.edit_message(embed=self.update_embed(), view=self)
 
     @discord.ui.button(label="", emoji="⬅️", row=0)
     async def prev_button(self, interaction: discord.Interaction, _: discord.Button):
+        '''Go to the previous page of the list'''
         self.current_page -= 1
         await interaction.response.edit_message(embed=self.update_embed(), view=self)
 
     @discord.ui.button(label="", emoji="➡️", row=0)
     async def next_button(self, interaction: discord.Interaction, _: discord.Button):
+        '''Go to the next page of the list'''
         self.current_page += 1
         await interaction.response.edit_message(embed=self.update_embed(), view=self)
 
     @discord.ui.button(label="", emoji="⏭️", row=0)
     async def last_button(self, interaction: discord.Interaction, _: discord.Button):
+        '''Go to the last page of the list'''
         self.current_page = self.max_page
         await interaction.response.edit_message(embed=self.update_embed(), view=self)
 
@@ -199,6 +205,7 @@ class Voting(commands.Cog):
     @app_commands.command(name="top_messages", description="Top 5 most popular messages registered by the bot")
     @app_commands.describe(guild_only="Set to true to only display messages from the current server")
     async def top_messages(self, interaction: discord.Interaction, guild_only: bool = False):
+        '''Displays the top 5 most popular messages registered by the bot, or the top 5 from the current server if guild_only is set to True'''
         logger.info(f"{interaction.user.name} issued /top_messages, ({interaction.channel})")
 
         top_messages: list[tuple[str, int, int, int, int]] = self.db.top_messages(interaction.guild_id if guild_only else None)
@@ -208,7 +215,7 @@ class Voting(commands.Cog):
 
         for (author_id, m_id, c_id, g_id, score) in top_messages:
             author_name: str = await self.get_nick_or_name(interaction, author_id)
-            message_url = self.message_url(m_id, c_id, g_id)
+            message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
             embed.add_field(name=f"Score: {score}", value=f"{author_name}\n[Jump to message]({message_url})", inline=False)
 
         await interaction.response.send_message(embed=embed)
