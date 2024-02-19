@@ -297,17 +297,12 @@ class Voting(commands.Cog):
         emojis = self.db.get_emojis(interaction.guild_id)
         await interaction.response.send_message(f"Server settings initialized, upvote emoji: {emojis[0]}, downvote emoji: {emojis[1]}")
 
-    @app_commands.command(name="set_upvote", description="Changes the upvote emoji for the guild")
-    async def set_upvote(self, interaction: discord.Interaction, emoji: str):
-        self.db.set_upvote(interaction.guild_id, emoji)
-        await interaction.response.send_message(f"Guild upvote emoji set: {emoji}")
-        logger.info(f"({interaction.guild.name}) Guild upvote emoji changed to {emoji} by {interaction.user.name}")
-        
-    @app_commands.command(name="set_downvote", description="Changes the downvote emoji for the guild")
-    async def set_downvote(self, interaction: discord.Interaction, emoji: str):
-        self.db.set_downvote(interaction.guild_id, emoji)
-        await interaction.response.send_message(f"Guild downvote emoji set: {emoji}")
-        logger.info(f"({interaction.guild.name}) Guild downvote emoji changed to {emoji} by {interaction.user.name}")
+    @app_commands.command(name="set_emojis", description="Changes the upvote and downvote emojis for the guild")
+    async def set_emojis(self, interaction: discord.Interaction, upvote_emoji: str, downvote_emoji: str):
+        self.db.set_upvote(interaction.guild_id, upvote_emoji)
+        self.db.set_downvote(interaction.guild_id, downvote_emoji)
+        await interaction.response.send_message(f"Guild emojis set: Upvote - {upvote_emoji}, Downvote - {downvote_emoji}")
+        logger.info(f"({interaction.guild.name}) Guild emojis changed: Upvote - {upvote_emoji}, Downvote - {downvote_emoji} by {interaction.user.name}")
 
 async def setup(client: MiniSigma):
     await client.add_cog(Voting(client))
