@@ -55,8 +55,8 @@ class ListPaginator(discord.ui.View):
 
     def update_embed(self):
         page = self.current_page - 1
-        start = page * 5
-        end = start + 5
+        start = int(page * 5)
+        end = int(start + 5)
         page_data = self.data[start:end]
         self.update_buttons()
 
