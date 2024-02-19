@@ -29,6 +29,67 @@ async def nick_update(member: discord.Member, iq_score: int) -> None:
 
 logger = logging.getLogger("client")
 
+class ListPaginator(discord.ui.View):
+    def __init__(self, embed, data):
+        super().__init__(timeout=None)
+        self.embed: discord.Embed = embed
+        self.data = data
+        self.current_page = 1
+        self.max_page = len(data)/5
+        self.update_buttons()
+
+    def update_buttons(self):
+        if self.current_page <= 1:
+            self.first_button.disabled = True
+            self.prev_button.disabled = True
+        else:
+            self.first_button.disabled = False
+            self.prev_button.disabled = False
+
+        if self.current_page >= self.max_page:
+            self.next_button.disabled = True
+            self.last_button.disabled = True
+        else:
+            self.next_button.disabled = False
+            self.last_button.disabled = False
+
+    def update_embed(self):
+        page = self.current_page - 1
+        start = page * 5
+        end = start + 5
+        page_data = self.data[start:end]
+        self.update_buttons()
+
+        self.embed.clear_fields()
+        for (m_id, c_id, g_id, score) in page_data:
+            message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
+            channel_link = f"<#{c_id}>"
+            self.embed.add_field(name=f"Score: {score} {channel_link}", value=f"[Jump to message]({message_url})", inline=False)
+        return self.embed
+
+    async def send(self, interaction: discord.Interaction):
+        self.message = await interaction.response.send_message(embed=self.update_embed(), view=self)
+
+    @discord.ui.button(label="", emoji="⏮️", row=0)
+    async def first_button(self, interaction: discord.Interaction, _: discord.Button):
+        self.current_page = 1
+        await interaction.response.edit_message(embed=self.update_embed(), view=self)
+
+    @discord.ui.button(label="", emoji="⬅️", row=0)
+    async def prev_button(self, interaction: discord.Interaction, _: discord.Button):
+        self.current_page -= 1
+        await interaction.response.edit_message(embed=self.update_embed(), view=self)
+
+    @discord.ui.button(label="", emoji="➡️", row=0)
+    async def next_button(self, interaction: discord.Interaction, _: discord.Button):
+        self.current_page += 1
+        await interaction.response.edit_message(embed=self.update_embed(), view=self)
+
+    @discord.ui.button(label="", emoji="⏭️", row=0)
+    async def last_button(self, interaction: discord.Interaction, _: discord.Button):
+        self.current_page = self.max_page
+        await interaction.response.edit_message(embed=self.update_embed(), view=self)
+
 class Voting(commands.Cog):
     '''Cog that implements voting with reactions'''
 
@@ -123,39 +184,17 @@ class Voting(commands.Cog):
         embed = await self.user_sentiment(interaction, target)
         await interaction.response.send_message(embed=embed)
 
-    def message_url(self, message_id: int, channel_id: int, guild_id: int) -> str:
-        return f"https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
-
-    def message_list_embed(self, title: str, thumbnail: str, message_list: list[tuple[int, int, int, int]]) -> discord.Embed:
-        embed = discord.Embed(title=title, color=config.EMBED_COLOR)
-        links = [f"Score: {score} [Jump to message]({self.message_url(m_id, c_id, g_id)})" for (m_id, c_id, g_id, score) in message_list]
-        embed.set_thumbnail(url=thumbnail)
-        embed.add_field(name="Posts:", value="\n".join(links))
-        return embed
-
     @app_commands.command(name="bestof", description="Displays a list of the top 5 posts by a user")
     async def bestof(self, interaction: discord.Interaction, target: discord.Member = None):
+        '''Displays a list of the top 5 posts by a user, or the user who issued the command if no target is specified'''
         logger.info(f"{interaction.user.name} issued /bestof {target}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        best_posts = self.db.best_of(target.id, 5)
-        thumbnail = target.display_avatar.url
-        title = f"{target.nick or target.name}'s Best Posts:"
-        embed = self.message_list_embed(title=title, thumbnail=thumbnail, message_list=best_posts)
+        embed = embed = discord.Embed(title=f"{target.nick or target.name}'s Best Posts:", color=config.EMBED_COLOR)
+        embed.set_thumbnail(url=target.display_avatar.url)
 
-        await interaction.response.send_message(embed=embed)
-
-    @app_commands.command(name="worstof", description="Displays a list of the worst 5 posts by a user")
-    async def worstof(self, interaction: discord.Interaction, target: discord.Member = None):
-        logger.info(f"{interaction.user.name} issued /worstof {target}, ({interaction.channel})")
-        target = interaction.user if target == None else target
-
-        worst_posts = self.db.worst_of(target.id, 5)
-        thumbnail = target.display_avatar.url
-        title = f"{target.nick or target.name}'s Worst Posts:"
-        embed = self.message_list_embed(title=title, thumbnail=thumbnail, message_list=worst_posts)
-
-        await interaction.response.send_message(embed=embed)
+        view = ListPaginator(embed, self.db.best_of(target.id))
+        await view.send(interaction)
 
     @app_commands.command(name="top_messages", description="Top 5 most popular messages registered by the bot")
     @app_commands.describe(guild_only="Set to true to only display messages from the current server")

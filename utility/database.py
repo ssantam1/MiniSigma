@@ -188,8 +188,10 @@ class Database:
         self.c.execute("SELECT * FROM Reactions WHERE author_id = ?", (id,))
         return self.c.fetchall()
     
-    def best_of(self, id: int, num: int) -> list[tuple[int, int, int, int]]:
-        self.c.execute("SELECT message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE author_id = ? GROUP BY message_id ORDER BY SUM(vote_type) DESC LIMIT ?", (id, num))
+    def best_of(self, id: int, num: int = None) -> list[tuple[int, int, int, int]]:
+        self.c.execute("SELECT message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE author_id = ? GROUP BY message_id ORDER BY SUM(vote_type) DESC", (id,))
+        if num is not None:
+            return self.c.fetchall()[:num]
         return self.c.fetchall()
     
     def worst_of(self, id: int, num: int) -> list[tuple[int, int, int, int]]:
