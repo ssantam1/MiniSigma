@@ -293,14 +293,19 @@ class Voting(commands.Cog):
 
     @app_commands.command(name="guild_onboarding", description="Initializes guild settings")
     async def guild_onboarding(self, interaction: discord.Interaction):
+        '''Initializes guild settings in the database, including upvote and downvote emojis. Does not overwrite existing settings'''
         self.db.add_guild(interaction.guild_id)
         emojis = self.db.get_emojis(interaction.guild_id)
+        
         await interaction.response.send_message(f"Server settings initialized, upvote emoji: {emojis[0]}, downvote emoji: {emojis[1]}")
+        logger.info(f"({interaction.guild.name}) Guild emojis initialized: Upvote - {emojis[0]}, Downvote - {emojis[1]} by {interaction.user.name}")
 
     @app_commands.command(name="set_emojis", description="Changes the upvote and downvote emojis for the guild")
     async def set_emojis(self, interaction: discord.Interaction, upvote_emoji: str, downvote_emoji: str):
+        '''Changes the upvote and downvote emojis for the guild'''
         self.db.set_upvote(interaction.guild_id, upvote_emoji)
         self.db.set_downvote(interaction.guild_id, downvote_emoji)
+
         await interaction.response.send_message(f"Guild emojis set: Upvote - {upvote_emoji}, Downvote - {downvote_emoji}")
         logger.info(f"({interaction.guild.name}) Guild emojis changed: Upvote - {upvote_emoji}, Downvote - {downvote_emoji} by {interaction.user.name}")
 
