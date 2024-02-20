@@ -82,7 +82,7 @@ class Scanner(commands.Cog):
                     async for voter in reaction.users():
                         if voter.id == message.author.id:
                             continue
-                        self.db.add_reaction(voter.id, message.author.id, message.id, channel.id, guild.id, 1 if str(reaction.emoji) == upvote else -1, message.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+                        self.db.add_reaction(voter.id, message, 1 if str(reaction.emoji) == upvote else -1, message.created_at.isoformat())
 
         logger.info(f"Finished scanning guild: {guild.name}")
 

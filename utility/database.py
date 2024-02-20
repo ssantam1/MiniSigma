@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+from discord import Message
 
 class Database:
     def __init__(self):
@@ -40,18 +41,26 @@ class Database:
             )''')
         
         self.c.execute('''
-            CREATE TABLE IF NOT EXISTS Reactions (
-                voter_id INTEGER,
-                author_id INTEGER,
-                message_id INTEGER,
+            CREATE TABLE IF NOT EXISTS Messages (
+                id INTEGER PRIMARY KEY,
                 channel_id INTEGER,
                 guild_id INTEGER,
+                author_id INTEGER,
+                content TEXT,
+                timestamp TEXT,
+                FOREIGN KEY (author_id) REFERENCES Users(id),
+                FOREIGN KEY (guild_id) REFERENCES Emojis(guild_id)
+            )''')
+        
+        self.c.execute('''
+            CREATE TABLE IF NOT EXISTS Reactions (
+                voter_id INTEGER,
+                message_id INTEGER,
                 vote_type INTEGER,
                 timestamp TEXT,
                 PRIMARY KEY (voter_id, message_id, vote_type),
                 FOREIGN KEY (voter_id) REFERENCES Users(id),
-                FOREIGN KEY (author_id) REFERENCES Users(id),
-                FOREIGN KEY (guild_id) REFERENCES Emojis(guild_id)
+                FOREIGN KEY (message_id) REFERENCES Messages(id)
             )''')
         
         self.conn.commit()
@@ -168,8 +177,9 @@ class Database:
 
     # ========== REACTION MANAGEMENT ==========
 
-    def add_reaction(self, voter_id: int, author_id: int, message_id: int, channel_id: int, guild_id: int, vote_type: int, timestamp: str):
-        self.c.execute("INSERT OR IGNORE INTO Reactions (voter_id, author_id, message_id, channel_id, guild_id, vote_type, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)", (voter_id, author_id, message_id, channel_id, guild_id, vote_type, timestamp))
+    def add_reaction(self, voter_id: int, message: Message, vote_type: int, timestamp: str) -> None:
+        self.add_message(message)
+        self.c.execute("INSERT OR IGNORE INTO Reactions (voter_id, message_id, vote_type, timestamp) VALUES (?, ?, ?, ?)", (voter_id, message.id, vote_type, timestamp))
         self.conn.commit()
 
     def remove_reaction(self, voter_id: int, message_id: int, vote_type: int):
@@ -180,28 +190,35 @@ class Database:
         self.c.execute("SELECT * FROM Reactions")
         return self.c.fetchall()
     
-    def user_reactions(self, id: int) -> list[tuple[int, int, int, int, int, str]]:
-        self.c.execute("SELECT * FROM Reactions WHERE voter_id = ?", (id,))
-        return self.c.fetchall()
-    
-    def user_messages(self, id: int) -> list[tuple[int, int, int, int, int, str]]:
-        self.c.execute("SELECT * FROM Reactions WHERE author_id = ?", (id,))
-        return self.c.fetchall()
-    
     def best_of(self, id: int, num: int = None) -> list[tuple[int, int, int, int]]:
-        self.c.execute("SELECT message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE author_id = ? GROUP BY message_id ORDER BY SUM(vote_type) DESC", (id,))
-        if num is not None:
-            return self.c.fetchall()[:num]
-        return self.c.fetchall()
-    
-    def worst_of(self, id: int, num: int) -> list[tuple[int, int, int, int]]:
-        self.c.execute("SELECT message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE author_id = ? GROUP BY message_id ORDER BY SUM(vote_type) ASC LIMIT ?", (id, num))
-        return self.c.fetchall()
-    
-    def top_messages(self, guild_id: int = None) -> list[tuple[str, int, int, int, int]]:
-        if guild_id is not None:
-            self.c.execute("SELECT author_id, message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions WHERE guild_id = ? GROUP BY message_id ORDER BY SUM(vote_type) DESC LIMIT 5", (guild_id,))
+        '''Returns the top num messages of a user as a list of tuples (message_id, SUM(vote_type))'''
+        if num is None:
+            self.c.execute("SELECT Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type) FROM Reactions JOIN Messages on Reactions.message_id = Messages.id WHERE Messages.author_id = ? GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC", (id,))
         else:
-            self.c.execute("SELECT author_id, message_id, channel_id, guild_id, SUM(vote_type) FROM Reactions GROUP BY message_id ORDER BY SUM(vote_type) DESC LIMIT 5")
+            self.c.execute("SELECT Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type) FROM Reactions JOIN Messages on Reactions.message_id = Messages.id WHERE Messages.author_id = ? GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC LIMIT ?", (id, num))
+        
+        return self.c.fetchall()
+    
+    def top_messages(self, guild_id) -> list[tuple[str, int, int, int, int]]:
+        '''Returns the top 5 messages as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(vote_type))'''
+        if guild_id is None:
+            self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC LIMIT 5")
+        else:
+            self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id WHERE guild_id = ? GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC LIMIT 5", (guild_id,))
             
         return self.c.fetchall()
+    
+    def add_message(self, message: Message) -> None:
+        '''Adds a message to the database if it doesn't exist already.'''
+        self.c.execute("INSERT OR IGNORE INTO Messages (id, channel_id, guild_id, author_id, content, timestamp) VALUES (?, ?, ?, ?, ?, ?)", (message.id, message.channel.id, message.guild.id, message.author.id, message.clean_content, message.created_at.isoformat()))
+        self.conn.commit()
+
+    def list_messages(self) -> list[tuple[int, int, int, int, str, str]]:
+        '''Returns all messages in the database as a list of tuples (id, channel_id, guild_id, author_id, content, timestamp)'''
+        self.c.execute("SELECT * FROM Messages")
+        return self.c.fetchall()
+    
+    def get_message(self, id: int) -> tuple[int, int, int, int, str, str]:
+        '''Returns a message from the database as a tuple (id, channel_id, guild_id, author_id, content, timestamp)'''
+        self.c.execute("SELECT * FROM Messages WHERE id = ?", (id,))
+        return self.c.fetchone()
