@@ -8,25 +8,6 @@ import utility.database as DB
 import config
 from bot import MiniSigma
 
-def nick_without_iq(raw_nick: str) -> str:
-    '''Removes iq score from the end of nickname strings'''
-    nick_sans_iq: str = re.sub(r"\s*\([^)]*\)$", "", raw_nick)
-    return nick_sans_iq
-
-async def nick_update(member: discord.Member, iq_score: int) -> None:
-    '''Update a member's nick with a new score'''
-    try:
-        current_nick = member.nick or member.name
-    except AttributeError:
-        current_nick = member.name
-        
-    nick_sans_iq = nick_without_iq(current_nick)
-    new_nick = nick_sans_iq + (f" ({iq_score} IQ)")
-    try:
-        await member.edit(nick=new_nick)
-    except discord.errors.Forbidden:
-        print(f"Unable to update {nick_sans_iq}'s nick, new score is {iq_score}")
-
 logger = logging.getLogger("client")
 
 class ListPaginator(discord.ui.View):
@@ -103,6 +84,20 @@ class Voting(commands.Cog):
         self.client = client
         self.db: DB.Database = client.db
 
+    async def nick_update(self, member: discord.Member, iq_score: int) -> None:
+        '''Update a member's nick with a new score'''
+        try:
+            current_nick = member.nick or member.name
+        except AttributeError:
+            current_nick = member.name
+            
+        nick_sans_iq: str = re.sub(r"\s*\([^)]*\)$", "", current_nick)
+        new_nick = nick_sans_iq + (f" ({iq_score} IQ)")
+        try:
+            await member.edit(nick=new_nick)
+        except discord.errors.Forbidden:
+            print(f"Unable to update {nick_sans_iq}'s nick, new score is {iq_score}")
+
     async def get_nick_or_name(self, interaction: discord.Interaction, id: int) -> str:
         try:
             member = interaction.guild.get_member(id) or await interaction.guild.fetch_member(id)
@@ -138,7 +133,7 @@ class Voting(commands.Cog):
         self.db.update_username(target.id, target.name)
         self.db.update_username(voter.id, voter.name)
 
-        await nick_update(target, new_user_score)
+        await self.nick_update(target, new_user_score)
         logger.info(f"{target} {event.event_type} {vote_type}: {voter} ({message.channel}), Score: {new_user_score}")
 
     @commands.Cog.listener()
@@ -256,7 +251,7 @@ class Voting(commands.Cog):
                 member = ctx.guild.get_member(user[0])
                 iq = user[2] - user[3] + user[4]
                 if member is not None:
-                    tasklist.append(nick_update(member, iq))
+                    tasklist.append(self.nick_update(member, iq))
             except:
                 print(f"Couldn't fetch {user(1)}'s member object, skipping...")
         
