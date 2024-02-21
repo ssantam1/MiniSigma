@@ -178,20 +178,23 @@ class Database:
     # ========== REACTION MANAGEMENT ==========
 
     def add_reaction(self, voter_id: int, message: Message, vote_type: int, timestamp: str) -> None:
+        '''Adds a reaction to the database if it doesn't exist already.'''
         self.add_message(message)
         self.c.execute("INSERT OR IGNORE INTO Reactions (voter_id, message_id, vote_type, timestamp) VALUES (?, ?, ?, ?)", (voter_id, message.id, vote_type, timestamp))
         self.conn.commit()
 
     def remove_reaction(self, voter_id: int, message_id: int, vote_type: int):
+        '''Removes a reaction from the database.'''
         self.c.execute("DELETE FROM Reactions WHERE voter_id = ? AND message_id = ? AND vote_type = ?", (voter_id, message_id, vote_type))
         self.conn.commit()
 
     def list_reactions(self) -> list[tuple[int, int, int, int, int, int, str]]:
+        '''Returns all reactions in the database as a list of tuples (voter_id, message_id, vote_type, channel_id, guild_id, author_id, timestamp)'''
         self.c.execute("SELECT * FROM Reactions")
         return self.c.fetchall()
     
     def best_of(self, id: int, num: int = None) -> list[tuple[int, int, int, int]]:
-        '''Returns the top num messages of a user as a list of tuples (message_id, SUM(vote_type))'''
+        '''Returns the top num messages of a user as a list of tuples (message_id, channel_id, guild_id, SUM(vote_type))'''
         if num is None:
             self.c.execute("SELECT Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type) FROM Reactions JOIN Messages on Reactions.message_id = Messages.id WHERE Messages.author_id = ? GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC", (id,))
         else:
