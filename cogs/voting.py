@@ -108,6 +108,8 @@ class Voting(commands.Cog):
                 return user.name
             except:
                 return "[Deleted User]"
+
+    # ==================== Vote Detection & Processing ====================
     
     async def process_reaction(self, event: discord.RawReactionActionEvent) -> None:
         emojis = self.db.get_emojis(event.guild_id)
@@ -144,6 +146,8 @@ class Voting(commands.Cog):
     async def on_raw_reaction_remove(self, RawReactionActionEvent: discord.RawReactionActionEvent):
         await self.process_reaction(RawReactionActionEvent)
 
+    # ==================== Commands ====================
+        
     async def user_sentiment(self, interaction: discord.Interaction, target: discord.Member) -> discord.Embed:
         '''Returns an embed with a list of target's fans or haters, based on context commmand'''
         target = interaction.user if target == None else target
@@ -212,6 +216,7 @@ class Voting(commands.Cog):
             author_name: str = await self.get_nick_or_name(interaction, author_id)
             message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
             preview = content[:100] + "..." if len(content) > 100 else content
+
             embed.add_field(name=f"Score: {score} | {author_name}", value=f'"{preview}"\n[Jump to message]({message_url})', inline=False)
 
         await interaction.response.send_message(embed=embed)
