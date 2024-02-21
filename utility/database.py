@@ -225,3 +225,11 @@ class Database:
         '''Returns a message from the database as a tuple (id, channel_id, guild_id, author_id, content, timestamp)'''
         self.c.execute("SELECT * FROM Messages WHERE id = ?", (id,))
         return self.c.fetchone()
+    
+    def reset_for_scan(self):
+        '''Resets the database for a new scan'''
+        self.c.execute("DROP TABLE Users")
+        self.c.execute("DROP TABLE FansAndHaters")
+        self.c.execute("DROP TABLE Reactions")
+        self.conn.commit()
+        self.create_tables()
