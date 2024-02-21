@@ -202,9 +202,9 @@ class Database:
     def top_messages(self, guild_id) -> list[tuple[str, int, int, int, int]]:
         '''Returns the top 5 messages as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(vote_type))'''
         if guild_id is None:
-            self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC LIMIT 5")
+            self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type), Messages.content FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC LIMIT 5")
         else:
-            self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id WHERE guild_id = ? GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC LIMIT 5", (guild_id,))
+            self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type), Messages.content FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id WHERE guild_id = ? GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC LIMIT 5", (guild_id,))
             
         return self.c.fetchall()
     

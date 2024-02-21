@@ -208,10 +208,11 @@ class Voting(commands.Cog):
         embed = discord.Embed(title="Top Messages:", color=config.EMBED_COLOR)
         embed.set_thumbnail(url=self.client.user.display_avatar.url)
 
-        for (author_id, m_id, c_id, g_id, score) in top_messages:
+        for (author_id, m_id, c_id, g_id, score, content) in top_messages:
             author_name: str = await self.get_nick_or_name(interaction, author_id)
             message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
-            embed.add_field(name=f"Score: {score}", value=f"{author_name}\n[Jump to message]({message_url})", inline=False)
+            preview = content[:100] + "..." if len(content) > 100 else content
+            embed.add_field(name=f"Score: {score} | {author_name}", value=f'"{preview}"\n[Jump to message]({message_url})', inline=False)
 
         await interaction.response.send_message(embed=embed)
 
