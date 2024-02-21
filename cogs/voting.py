@@ -7,6 +7,7 @@ from discord import app_commands
 import utility.database as DB
 import config
 from bot import MiniSigma
+from datetime import datetime
 
 logger = logging.getLogger("client")
 
@@ -112,8 +113,8 @@ class Voting(commands.Cog):
     # ==================== Vote Detection & Processing ====================
     
     async def process_reaction(self, event: discord.RawReactionActionEvent) -> None:
-        emojis = self.db.get_emojis(event.guild_id)
-        if str(event.emoji) not in emojis:
+        (upvote, downvote) = self.db.get_emojis(event.guild_id)
+        if str(event.emoji) not in (upvote, downvote):
             return
 
         channel = self.client.get_channel(event.channel_id)
@@ -126,12 +127,21 @@ class Voting(commands.Cog):
             return
 
         count_change = 1 if event.event_type == "REACTION_ADD" else -1
-        if str(event.emoji) == emojis[0]:
+        if str(event.emoji) == upvote:
             new_user_score = self.db.upvote_user(target.id, count_change, voter.id)
             vote_type = "upvote"
+            if count_change == 1:
+                self.db.add_reaction(voter.id, message, 1, datetime.now().isoformat())
+            else:
+                self.db.remove_reaction(voter.id, message, 1)
         else:
             new_user_score = self.db.downvote_user(target.id, count_change, voter.id)
             vote_type = "downvote"
+            if count_change == 1:
+                self.db.add_reaction(voter.id, message, -1, datetime.now().isoformat())
+            else:
+                self.db.remove_reaction(voter.id, message, -1)
+            
         self.db.update_username(target.id, target.name)
         self.db.update_username(voter.id, voter.name)
 

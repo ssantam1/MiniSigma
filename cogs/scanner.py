@@ -45,7 +45,7 @@ class Scanner(commands.Cog):
                         if str(reaction.emoji) == upvote:
                             self.db.upvote_user(message.author.id, 1, voter.id)
                             self.db.add_reaction(voter.id, message, 1, message.created_at.isoformat())
-                            
+
                         else:
                             self.db.downvote_user(message.author.id, 1, voter.id)
                             self.db.add_reaction(voter.id, message, -1, message.created_at.isoformat())
@@ -66,7 +66,8 @@ class Scanner(commands.Cog):
     @commands.command()
     async def scan_all_guilds(self, ctx: commands.Context):
         logger.info(f"{ctx.author.name} issued !scan_all_guilds, ({ctx.channel})")
-        await ctx.send(f"Entering reactions for all guilds")
+        self.db.reset_for_scan()
+        await ctx.send(f"DB reset! Entering reactions for all guilds")
 
         start_time = time.perf_counter()
         for guild in self.client.guilds:
