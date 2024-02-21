@@ -34,19 +34,19 @@ class Scanner(commands.Cog):
             async for message in channel.history(limit=None, after=channel.created_at, before=datetime.datetime.now()):
                 for reaction in message.reactions:
 
-                    if str(reaction.emoji) == upvote:
-                        voters = [voter async for voter in reaction.users()]
-                        for voter in voters:
-                            if voter.id == message.author.id:
-                                continue
+                    if str(reaction.emoji) not in [upvote, downvote]:
+                        continue
+
+                    voters = [voter async for voter in reaction.users()]
+                    for voter in voters:
+                        if voter.id == message.author.id:
+                            continue
+
+                        if str(reaction.emoji) == upvote:
                             self.db.upvote_user(message.author.id, 1, voter.id)
                             self.db.add_reaction(voter.id, message, 1, message.created_at.isoformat())
-
-                    elif str(reaction.emoji) == downvote:
-                        voters = [voter async for voter in reaction.users()]
-                        for voter in voters:
-                            if voter.id == message.author.id:
-                                continue
+                            
+                        else:
                             self.db.downvote_user(message.author.id, 1, voter.id)
                             self.db.add_reaction(voter.id, message, -1, message.created_at.isoformat())
 
