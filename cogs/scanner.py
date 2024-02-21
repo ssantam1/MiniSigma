@@ -29,7 +29,7 @@ class Scanner(commands.Cog):
         (upvote, downvote) = self.db.get_emojis(guild.id)
         
         for channel in guild.text_channels:
-            logger.info(f"Scanning channel: {channel.name}, from creation date: {channel.created_at.strftime('%Y-%m-%d')}")
+            logger.info(f"Scanning channel: {channel.name.encode('ascii', 'replace').decode()}, from creation date: {channel.created_at.strftime('%Y-%m-%d')}")
 
             stop_at = stop_at or datetime.datetime.now()
 
