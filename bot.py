@@ -9,6 +9,8 @@ import os
 
 EXTENSIONS = ["debug", "fun", "voting", "scanner", "xkcd", "jolly"]
 
+logger = logging.getLogger("client")
+
 class MiniSigma(commands.Bot):
 
     def __init__(self):
@@ -31,13 +33,11 @@ class MiniSigma(commands.Bot):
         logger.info(f"{self.user} is now running!")
 
 if __name__ == '__main__':
-    logger = logging.getLogger('client')
-    logger.setLevel(logging.DEBUG)
-
     file_handler = logging.FileHandler("bot.log")
     file_handler.setFormatter(logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', '%Y-%m-%d %H:%M:%S', style='{'))
 
-    logging.getLogger().addHandler(file_handler)
+    root_logger = logging.getLogger()
+    root_logger.addHandler(file_handler)
 
     token = os.getenv("DISCORD_BOT_TOKEN")
-    MiniSigma().run(token=token, root_logger=True)
+    MiniSigma().run(token=token, log_handler=logging.StreamHandler(), log_formatter=discord.utils._ColourFormatter(), root_logger=True)
