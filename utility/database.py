@@ -130,9 +130,12 @@ class Database:
 
     # ========== STATISTICS ==========
         
-    def leaderboard(self, num: int) -> list[tuple[int, str, int]]:
+    def leaderboard(self, num: int, guild_id: int = None) -> list[tuple[int, str, int]]:
         '''Returns top scoring users as a list of tuples (user_id, username, upvotes-downvotes)'''
-        self.c.execute("SELECT id, username, upvotes-downvotes FROM Users ORDER BY upvotes-downvotes DESC LIMIT ?", (num,))
+        if guild_id is not None:
+            self.c.execute("SELECT Users.id, Users.username, Users.upvotes-Users.downvotes FROM Users JOIN Messages ON Users.id = Messages.author_id WHERE Messages.guild_id = ? ORDER BY upvotes-downvotes DESC LIMIT ?", (guild_id, num))
+        else:
+            self.c.execute("SELECT id, username, upvotes-downvotes FROM Users ORDER BY upvotes-downvotes DESC LIMIT ?", (num,))
         return self.c.fetchall()
 
     def fans(self, id: int, num: int) -> list[tuple[int, str, int]]:
