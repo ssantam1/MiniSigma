@@ -36,11 +36,8 @@ if __name__ == '__main__':
 
     file_handler = logging.FileHandler("bot.log")
     file_handler.setFormatter(logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', '%Y-%m-%d %H:%M:%S', style='{'))
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(discord.utils._ColourFormatter())
 
-    logger.addHandler(file_handler)
-    logger.addHandler(stream_handler)
+    logging.getLogger().addHandler(file_handler)
 
     token = os.getenv("DISCORD_BOT_TOKEN")
-    MiniSigma().run(token=token)
+    MiniSigma().run(token=token, root_logger=True)
