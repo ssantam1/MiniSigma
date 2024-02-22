@@ -233,9 +233,10 @@ class Voting(commands.Cog):
 
     @app_commands.command(name="leaderboard", description="Displays top n scoring individuals")
     @app_commands.describe(num="Number of users to display; Defaults to 5")
-    async def leaderboard(self, interact: discord.Interaction, num: int = 5):
+    @app_commands.describe(guild_only="Set to true to only display users from the current server")
+    async def leaderboard(self, interact: discord.Interaction, num: int = 5, guild_only: bool = False):
         logger.info(f"{interact.user.name} issued /leaderboard {num}, ({interact.channel})")
-        top = self.db.leaderboard(num)
+        top = self.db.leaderboard(num, interact.guild_id if guild_only else None)
 
         embed = discord.Embed(color=config.EMBED_COLOR)
         embed.set_author(name=f"{interact.guild.name} Leaderboard", icon_url=self.client.user.display_avatar.url)
