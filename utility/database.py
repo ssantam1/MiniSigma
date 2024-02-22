@@ -183,9 +183,9 @@ class Database:
         self.c.execute("INSERT OR IGNORE INTO Reactions (voter_id, message_id, vote_type, timestamp) VALUES (?, ?, ?, ?)", (voter_id, message.id, vote_type, timestamp))
         self.conn.commit()
 
-    def remove_reaction(self, voter_id: int, message_id: int, vote_type: int):
+    def remove_reaction(self, voter_id: int, message: Message, vote_type: int):
         '''Removes a reaction from the database.'''
-        self.c.execute("DELETE FROM Reactions WHERE voter_id = ? AND message_id = ? AND vote_type = ?", (voter_id, message_id, vote_type))
+        self.c.execute("DELETE FROM Reactions WHERE voter_id = ? AND message_id = ? AND vote_type = ?", (voter_id, message.id, vote_type))
         self.conn.commit()
 
     def list_reactions(self) -> list[tuple[int, int, int, int, int, int, str]]:
