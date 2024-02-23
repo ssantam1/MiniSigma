@@ -130,12 +130,9 @@ class Database:
 
     # ========== STATISTICS ==========
         
-    def leaderboard(self, num: int, guild_id: int = None) -> list[tuple[int, str, int]]:
-        '''Returns top scoring users as a list of tuples (user_id, username, upvotes-downvotes)'''
-        if guild_id is not None:
-            self.c.execute("SELECT Users.id, Users.username, Users.upvotes-Users.downvotes FROM Users JOIN Messages ON Users.id = Messages.author_id WHERE Messages.guild_id = ? ORDER BY upvotes-downvotes DESC LIMIT ?", (guild_id, num))
-        else:
-            self.c.execute("SELECT id, username, upvotes-downvotes FROM Users ORDER BY upvotes-downvotes DESC LIMIT ?", (num,))
+    def leaderboard(self) -> list[tuple[int, str, int]]:
+        '''Returns users in order of score as a list of tuples (user_id, username, upvotes-downvotes)'''
+        self.c.execute("SELECT id, username, upvotes-downvotes+offset FROM Users ORDER BY upvotes-downvotes+offset DESC")
         return self.c.fetchall()
 
     def fans(self, id: int, num: int) -> list[tuple[int, str, int]]:
@@ -151,6 +148,11 @@ class Database:
     def get_iq(self, id: int) -> int:
         '''Returns the IQ of a user'''
         self.c.execute("SELECT upvotes-downvotes+offset FROM Users WHERE id = ?", (id,))
+        return self.c.fetchone()[0]
+    
+    def get_iq_in_guild(self, id: int, guild_id: int) -> int:
+        '''Returns the IQ of a user just from reacts in a specific guild'''
+        self.c.execute("SELECT SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id WHERE Messages.author_id = ? AND Messages.guild_id = ?", (id, guild_id))
         return self.c.fetchone()[0]
     
     # ========== EMOJI MANAGEMENT ==========
