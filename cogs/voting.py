@@ -232,11 +232,10 @@ class Voting(commands.Cog):
 
         data = list()
         for (author_id, m_id, c_id, g_id, score, content) in self.db.top_messages(target_guild):
-            author_name: str = await self.get_nick_or_name(interaction, author_id)
             message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
             preview = content[:100] + "..." if len(content) > 100 else content
-            field_name = f"Score: {score} | {author_name}"
-            field_value = f'"{preview}"\n[Jump to message]({message_url})'
+            field_name = f"Score: {score}"
+            field_value = f'"{preview}"\n -<@{author_id}> [Jump to message]({message_url})'
             data.append(tuple([field_name, field_value]))
 
         view = ListPaginator(embed, data)
