@@ -220,10 +220,10 @@ class Voting(commands.Cog):
         view = ListPaginator(embed, data)
         await view.send(interaction)
 
-    @app_commands.command(name="top_messages", description="Top 5 most popular messages registered by the bot")
+    @app_commands.command(name="top_messages", description="Shows most popular messages")
     @app_commands.describe(guild_only="Set to true to only display messages from the current server")
     async def top_messages(self, interaction: discord.Interaction, guild_only: bool = False):
-        '''Displays the top 5 most popular messages registered by the bot, or the top 5 from the current server if guild_only is set to True'''
+        '''Displays the most popular messages registered by the bot, or the from the current server if guild_only is set to True'''
         logger.info(f"{interaction.user.name} issued /top_messages, ({interaction.channel})")
 
         embed = discord.Embed(color=config.EMBED_COLOR)
