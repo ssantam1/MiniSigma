@@ -128,9 +128,9 @@ class XKCD(commands.Cog):
                 return data['num']
         except Exception as error:
             logger.warning(f"Failed to get latest comic num: {error}")
-            return None
+            return self.latest_comic
 
-    @tasks.loop(minutes=15, reconnect=True)
+    @tasks.loop(minutess=10, reconnect=True)
     async def check_for_new_comic(self):
         latest_comic_num = await self.get_latest_comic_num()
         if self.latest_comic != latest_comic_num:
