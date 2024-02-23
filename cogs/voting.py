@@ -206,8 +206,8 @@ class Voting(commands.Cog):
         logger.info(f"{interaction.user.name} issued /bestof {target}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        embed = embed = discord.Embed(title=f"{target.nick or target.name}'s Best Posts:", color=config.EMBED_COLOR)
-        embed.set_thumbnail(url=target.display_avatar.url)
+        embed = embed = discord.Embed(color=config.EMBED_COLOR)
+        embed.set_author(name=f"{target.nick or target.name}'s Best Posts:", icon_url=target.display_avatar.url)
 
         data = list()
         for (m_id, c_id, g_id, score) in self.db.best_of(target.id):
@@ -225,13 +225,15 @@ class Voting(commands.Cog):
     async def top_messages(self, interaction: discord.Interaction, guild_only: bool = False):
         '''Displays the top 5 most popular messages registered by the bot, or the top 5 from the current server if guild_only is set to True'''
         logger.info(f"{interaction.user.name} issued /top_messages, ({interaction.channel})")
-        target_guild = interaction.guild_id if guild_only else None
 
-        embed = discord.Embed(title="Top Messages:", color=config.EMBED_COLOR)
-        embed.set_thumbnail(url=self.client.user.display_avatar.url)
+        embed = discord.Embed(color=config.EMBED_COLOR)
+        if guild_only:
+            embed.set_author(name=f"{interaction.guild.name}'s Top Messages:", icon_url=interaction.guild.icon.url)
+        else:
+            embed.set_author(name="Top Messages:", icon_url=self.client.user.display_avatar.url)
 
         data = list()
-        for (author_id, m_id, c_id, g_id, score, content) in self.db.top_messages(target_guild):
+        for (author_id, m_id, c_id, g_id, score, content) in self.db.top_messages(interaction.guild.id if guild_only else None):
             message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
             preview = content[:100] + "..." if len(content) > 100 else content
             field_name = f"Score: {score}"
