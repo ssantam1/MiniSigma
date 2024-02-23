@@ -39,42 +39,17 @@ class Debug(commands.Cog):
     @commands.command()
     async def messages_in_channel(self, ctx: commands.Context):
         '''Replies with the number of messages in the channel'''
-        await ctx.send(f'Beginning scan of channel...')
         message_count = 0
         perf_start = time.perf_counter()
 
-        hist = ctx.channel.history(limit=None, after=ctx.channel.created_at, before=ctx.message.created_at)
-        
-        hist = [message async for message in hist]
-
-        for _ in hist:
-            message_count += 1
+        history = ctx.channel.history(limit=None, after=ctx.channel.created_at, before=ctx.message.created_at)
+        history = [message async for message in history]
+        message_count = len(history)
 
         perf_end = time.perf_counter()
         perf_time = perf_end - perf_start
 
-        await ctx.send(f"Done! Total messages: {message_count}\nTime: {perf_time: .2f} seconds")
-
-    @commands.command()
-    async def flatten_time(self, ctx: commands.Context, channel: discord.TextChannel):
-        await ctx.send("Flattening channel history object to list...")
-        start_pt = channel.created_at
-        end_pt = ctx.message.created_at
-        overall_diff: datetime.timedelta = end_pt - start_pt
-
-        hist: list[discord.Message] = []
-        pbar = tqdm(total=overall_diff.days, unit="day", unit_scale=True)
-        perf_start = time.perf_counter()
-
-        async for message in channel.history(limit=None, after=start_pt, before=end_pt):
-            hist.append(message)
-            iter_diff: datetime.timedelta = message.created_at - start_pt
-            pbar.n = iter_diff.days
-            pbar.update()
-            
-        pbar.close()
-        perf_time = time.perf_counter() - perf_start
-        await ctx.reply(f"Flattening {len(hist)} messages done in{perf_time: .2f} seconds. First poster: {hist[0].author.name}")
+        await ctx.reply(f"Done! Total messages: {message_count}\nTime: {perf_time: .2f} seconds")
 
     @app_commands.command(name="uptime", description="Displays the last time the bot was turned on")
     async def uptime(self, interaction: discord.Interaction):
@@ -106,17 +81,13 @@ class Debug(commands.Cog):
         await ctx.reply(f"Guild creation datetime: {ctx.guild.created_at}")
 
     @commands.command()
-    async def guild_id(self, ctx: commands.Context):
-        '''Replies with the ID of the current guild'''
-        await ctx.reply(f"`{ctx.guild.id}`")
-
-    @commands.command()
     async def emojiname(self, ctx: commands.Context, emoji: str):
-        '''Replies with a string, super unsafe lol'''
+        '''Replies with a string representation of the emoji, (probably still a way to exploit this)'''
+        emoji = emoji.replace("`", "")
         await ctx.reply(f"```{emoji}```")
     
     async def send_txt(self, ctx: commands.Context, list: list):
-        '''Creates a txt file with the string and sends it to a channel before deleting it'''
+        '''Creates a txt file with the string, sends it to a channel, and deletes it'''
         with open("temp.txt", "w", encoding='utf-8') as f:
             # create string, where each element is a new line
             string = "\n".join([str(x) for x in list])
