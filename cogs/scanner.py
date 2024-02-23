@@ -15,8 +15,7 @@ class Scanner(commands.Cog):
         self.client = client
         self.db: DB.Database = client.db
 
-    @commands.command()
-    async def fill_names(self, _: commands.Context):
+    async def fill_names(self):
         '''Go through the database and fill in the names of users'''
         for user in self.db.list_users():
             try:
@@ -24,8 +23,10 @@ class Scanner(commands.Cog):
                 self.db.update_username(user[0], member.name)
             except discord.errors.NotFound:
                 self.db.update_username(user[0], "Unknown")
+        logger.info("Finished filling names")
 
     async def scan_guild_history(self, guild: discord.Guild, stop_at: datetime.datetime = None):
+        '''Scan the history of a guild for reactions and add them to the database'''
         (upvote, downvote) = self.db.get_emojis(guild.id)
         
         for channel in guild.text_channels:
@@ -78,6 +79,8 @@ class Scanner(commands.Cog):
         total_time = time.perf_counter() - start_time
         
         await ctx.reply(f"Reactions entered! Total time: {total_time:.2f} seconds.")
+
+        await self.fill_names()
 
     async def flat_history_list(self, channel: discord.TextChannel) -> list[discord.Message]:
         start_pt = channel.created_at
