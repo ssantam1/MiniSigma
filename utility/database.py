@@ -207,7 +207,7 @@ class Database:
         
         return self.c.fetchall()
     
-    def top_messages(self, guild_id) -> list[tuple[str, int, int, int, int]]:
+    def top_messages(self, guild_id: int = None) -> list[tuple[str, int, int, int, int]]:
         '''Returns the top 5 messages as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(vote_type))'''
         if guild_id is None:
             self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type), Messages.content FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC")
