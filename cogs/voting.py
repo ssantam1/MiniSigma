@@ -225,20 +225,22 @@ class Voting(commands.Cog):
     async def top_messages(self, interaction: discord.Interaction, guild_only: bool = False):
         '''Displays the top 5 most popular messages registered by the bot, or the top 5 from the current server if guild_only is set to True'''
         logger.info(f"{interaction.user.name} issued /top_messages, ({interaction.channel})")
-
-        top_messages: list[tuple[str, int, int, int, int]] = self.db.top_messages(interaction.guild_id if guild_only else None)
+        target_guild = interaction.guild_id if guild_only else None
 
         embed = discord.Embed(title="Top Messages:", color=config.EMBED_COLOR)
         embed.set_thumbnail(url=self.client.user.display_avatar.url)
 
-        for (author_id, m_id, c_id, g_id, score, content) in top_messages:
+        data = list()
+        for (author_id, m_id, c_id, g_id, score, content) in self.db.top_messages(target_guild):
             author_name: str = await self.get_nick_or_name(interaction, author_id)
             message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
             preview = content[:100] + "..." if len(content) > 100 else content
+            field_name = f"Score: {score} | {author_name}"
+            field_value = f'"{preview}"\n[Jump to message]({message_url})'
+            data.append(tuple([field_name, field_value]))
 
-            embed.add_field(name=f"Score: {score} | {author_name}", value=f'"{preview}"\n[Jump to message]({message_url})', inline=False)
-
-        await interaction.response.send_message(embed=embed)
+        view = ListPaginator(embed, data)
+        await view.send(interaction)
 
     @app_commands.command(name="leaderboard", description="Displays top n scoring individuals")
     @app_commands.describe(guild_only="Set to true to only display score from the current server")
