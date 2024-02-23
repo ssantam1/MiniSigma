@@ -28,12 +28,10 @@ class Scanner(commands.Cog):
     async def scan_guild_history(self, guild: discord.Guild, stop_at: datetime.datetime = None):
         '''Scan the history of a guild for reactions and add them to the database'''
         (upvote, downvote) = self.db.get_emojis(guild.id)
-        
         for channel in guild.text_channels:
             logger.info(f"Scanning channel: {channel.name.encode('ascii', 'replace').decode()}, from creation date: {channel.created_at.strftime('%Y-%m-%d')}")
 
             stop_at = stop_at or datetime.datetime.now()
-
             async for message in channel.history(limit=None, after=channel.created_at, before=stop_at):
                 for reaction in message.reactions:
 
@@ -57,6 +55,7 @@ class Scanner(commands.Cog):
 
     @commands.command()
     async def scan_guild(self, ctx: commands.Context):
+        '''Scan the current guild for reactions and add them to the database'''
         logger.info(f"{ctx.author.name} issued !scan_guild, ({ctx.channel})")
         await ctx.send(f"Entering reactions for guild: {ctx.guild.name}")
 
@@ -66,8 +65,10 @@ class Scanner(commands.Cog):
         
         await ctx.reply(f"Scan Completed! Total time: {total_time:.2f} seconds.")
 
+
     @commands.command()
     async def scan_all_guilds(self, ctx: commands.Context):
+        '''Scan all guilds for reactions and add them to the database'''
         logger.info(f"{ctx.author.name} issued !scan_all_guilds, ({ctx.channel})")
         self.db.reset_for_scan()
         stop_at = datetime.datetime.now()
@@ -77,10 +78,10 @@ class Scanner(commands.Cog):
         for guild in self.client.guilds:
             await self.scan_guild_history(guild, stop_at)
         total_time = time.perf_counter() - start_time
-        
-        await ctx.reply(f"Reactions entered! Total time: {total_time:.2f} seconds.")
 
         await self.fill_names()
+        await ctx.reply(f"Reactions entered! Total time: {total_time:.2f} seconds.")
+
 
     async def flat_history_list(self, channel: discord.TextChannel) -> list[discord.Message]:
         start_pt = channel.created_at
