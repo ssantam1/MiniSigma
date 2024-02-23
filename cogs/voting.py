@@ -12,9 +12,9 @@ from datetime import datetime
 logger = logging.getLogger("client")
 
 class ListPaginator(discord.ui.View):
-    def __init__(self, embed, data):
+    def __init__(self, embed: discord.Embed, data: list):
         super().__init__(timeout=None)
-        self.embed: discord.Embed = embed
+        self.embed = embed
         self.data = data
         self.current_page = 1
         self.max_page = len(data) // 5 + (len(data) % 5 > 0)
@@ -45,10 +45,10 @@ class ListPaginator(discord.ui.View):
         self.update_buttons()
 
         self.embed.clear_fields()
-        for (m_id, c_id, g_id, score) in page_data:
-            message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
-            channel_link = f"<#{c_id}>"
-            self.embed.add_field(name=f"Score: {score} {channel_link}", value=f"[Jump to message]({message_url})", inline=False)
+
+        for(name, value) in page_data:
+            self.embed.add_field(name=name, value=value, inline=False)
+
         self.embed.set_footer(text=f"Page {self.current_page}/{self.max_page}")
         return self.embed
 
@@ -209,7 +209,15 @@ class Voting(commands.Cog):
         embed = embed = discord.Embed(title=f"{target.nick or target.name}'s Best Posts:", color=config.EMBED_COLOR)
         embed.set_thumbnail(url=target.display_avatar.url)
 
-        view = ListPaginator(embed, self.db.best_of(target.id))
+        data = list()
+        for (m_id, c_id, g_id, score) in self.db.best_of(target.id):
+            message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
+            channel_link = f"<#{c_id}>"
+            field_name = f"Score: {score} {channel_link}"
+            field_value = f"[Jump to message]({message_url})"
+            data.append(tuple([field_name, field_value]))
+
+        view = ListPaginator(embed, data)
         await view.send(interaction)
 
     @app_commands.command(name="top_messages", description="Top 5 most popular messages registered by the bot")
