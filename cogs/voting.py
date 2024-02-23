@@ -17,7 +17,7 @@ class ListPaginator(discord.ui.View):
         self.embed: discord.Embed = embed
         self.data = data
         self.current_page = 1
-        self.max_page = len(data)/5
+        self.max_page = len(data) // 5 + (len(data) % 5 > 0)
         self.update_buttons()
 
     def update_buttons(self):
@@ -49,6 +49,7 @@ class ListPaginator(discord.ui.View):
             message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
             channel_link = f"<#{c_id}>"
             self.embed.add_field(name=f"Score: {score} {channel_link}", value=f"[Jump to message]({message_url})", inline=False)
+        self.embed.set_footer(text=f"Page {self.current_page}/{self.max_page}")
         return self.embed
 
     async def send(self, interaction: discord.Interaction):
