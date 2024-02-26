@@ -7,7 +7,7 @@ from utility.database import Database
 import config
 import os
 
-EXTENSIONS = ["debug", "fun", "voting", "scanner", "xkcd", "jolly"]
+EXTENSIONS = ["debug", "fun", "voting", "scanner", "xkcd", "jolly", "gambling"]
 
 logger = logging.getLogger("client")
 
