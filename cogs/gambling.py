@@ -19,6 +19,7 @@ class deck:
     def __init__(self):
         self.cards: list[card] = []
         self.build()
+        self.shuffle()
 
     def build(self):
         for suit in ["♠", "♣", "♦", "♥"]:
@@ -32,132 +33,96 @@ class deck:
     
     def drawCard(self):
         return self.cards.pop()
-
-class blackjack:
-    def __init__(self):
-        self.deck = deck()
-        self.deck.shuffle()
-        self.playerHand: list[card] = []
-        self.dealerHand: list[card] = []
-        self.playerHand.append(self.deck.drawCard())
-        self.dealerHand.append(self.deck.drawCard())
-        self.playerHand.append(self.deck.drawCard())
-        self.dealerHand.append(self.deck.drawCard())
-        self.dealerHandIsSecret = True
     
-    def handValue(self, hand: list[card]) -> int:
-        total = 0
-        aces = 0
-        for card in hand:
-            if card.value == 'A':
-                total += 11
-                aces += 1
-            elif card.value in ['J', 'Q', 'K']:
-                total += 10
-            else:
-                total += int(card.value)
+class hand:
+    def __init__(self, deck: deck):
+        self.cards: list[card] = []
+        self.addCard(deck.drawCard())
+        self.addCard(deck.drawCard())
+    
+    def addCard(self, card: card):
+        self.cards.append(card)
+    
+    def handValue(self) -> int:
+        total = sum(11 if card.value == 'A' else 10 if card.value in ['J', 'Q', 'K'] else int(card.value) for card in self.cards)
+        aces = sum(1 for card in self.cards if card.value == 'A')
         while total > 21 and aces:
             total -= 10
             aces -= 1
         return total
     
-    def isPlayerBlackjack(self) -> bool:
-        return self.handValue(self.playerHand) == 21
+    def isBlackjack(self) -> bool:
+        return self.handValue() == 21
     
-    def isDealerBlackjack(self) -> bool:
-        return self.handValue(self.dealerHand) == 21
+    def isBust(self) -> bool:
+        return self.handValue() > 21
     
-    def isPlayerBust(self) -> bool:
-        return self.handValue(self.playerHand) > 21
-    
-    def isDealerBust(self) -> bool:
-        return self.handValue(self.dealerHand) > 21
-
-    def playerHit(self) -> int:
-        self.playerHand.append(self.deck.drawCard())
-        handValue = self.handValue(self.playerHand)
-        return handValue
-    
-    def dealerHit(self) -> int:
-        self.dealerHand.append(self.deck.drawCard())
-        handValue = self.handValue(self.dealerHand)
-        return handValue
-    
-    def pickWinner(self) -> str:
-        if self.isPlayerBlackjack() and not self.isDealerBlackjack():
-            return "BlackJack! Player wins!"
-        elif self.isDealerBlackjack() and not self.isPlayerBlackjack():
-            return "BlackJack! Dealer wins!"
-        elif self.isPlayerBust():
-            return "Player bust! Dealer wins!"
-        elif self.isDealerBust():
-            return "Dealer bust! Player wins!"
-        elif self.handValue(self.playerHand) > self.handValue(self.dealerHand):
-            return "Player wins!"
-        elif self.handValue(self.playerHand) < self.handValue(self.dealerHand):
-            return "Dealer wins!"
+    def __str__(self, secret: bool = False):
+        hand_str = ""
+        if secret:
+            hand_str += str(self.cards[0]) + " [? ?]"
         else:
-            return "It's a tie!"
-
-    def showDealerHand(self) -> str:
-        dealer_hand_str = ""
-        if self.dealerHandIsSecret:
-            dealer_hand_str += str(self.dealerHand[0]) + " "
-            dealer_hand_str += "[? ?]\nTotal: ?"
-        else:
-            for card in self.dealerHand:
-                dealer_hand_str += str(card) + " "
-            dealer_hand_str += f"\nTotal: {self.handValue(self.dealerHand)}"
-        return dealer_hand_str
-    
-    def showPlayerHand(self) -> str:
-        player_hand_str = ""
-        for card in self.playerHand:
-            player_hand_str += str(card) + " "
-        player_hand_str += f"\nTotal: {self.handValue(self.playerHand)}"
-        return player_hand_str
+            for card in self.cards:
+                hand_str += str(card) + " "
+        hand_str += f"\nTotal: {self.handValue()}"
+        return hand_str
 
 class BlackjackView(discord.ui.View):
     def __init__(self):
         super().__init__()
-        self.blackjack = blackjack()
+        self.deck = deck()
+        self.playerHand = hand(self.deck)
+        self.dealerHand = hand(self.deck)
+
         self.embed = discord.Embed(title="BlackJack", color=discord.Color.green())
-        self.embed.add_field(name="Dealer's Hand:", value=self.blackjack.showDealerHand())
-        self.embed.add_field(name="Player's Hand:", value=self.blackjack.showPlayerHand())
+        self.embed.add_field(name="Dealer's Hand:", value=self.dealerHand)
+        self.embed.add_field(name="Player's Hand:", value=self.playerHand)
+
+    def update_hands(self):
+        self.embed.set_field_at(0, name="Dealer's Hand:", value=self.dealerHand)
+        self.embed.set_field_at(1, name="Player's Hand:", value=self.playerHand)
+    
+    def pickWinner(self) -> str:
+        if self.playerHand.isBlackjack() and not self.dealerHand.isBlackjack():
+            return "BlackJack! Player wins!"
+        elif self.dealerHand.isBlackjack() and not self.playerHand.isBlackjack():
+            return "BlackJack! Dealer wins!"
+        elif self.playerHand.isBust():
+            return "Player bust! Dealer wins!"
+        elif self.dealerHand.isBust():
+            return "Dealer bust! Player wins!"
+        elif self.playerHand.handValue() > self.dealerHand.handValue():
+            return "Player wins!"
+        elif self.playerHand.handValue() < self.dealerHand.handValue():
+            return "Dealer wins!"
+        else:
+            return "It's a tie!"
 
     async def send(self, interaction: discord.Interaction):
-        await interaction.response.send_message(embed=self.embed, view=self)
-        if self.blackjack.isPlayerBlackjack() or self.blackjack.isDealerBlackjack():
-            await self.finish(interaction)
+            await interaction.response.send_message(embed=self.embed, view=self)
 
-    async def finish(self, interaction: discord.Interaction):
+    async def endGame(self, interaction: discord.Interaction):
         self.update_hands()
-        self.embed.add_field(name="Result:", value=self.blackjack.pickWinner(), inline=False)
+        self.embed.add_field(name="Result:", value=self.pickWinner(), inline=False)
         await interaction.response.edit_message(embed=self.embed, view=None)
         self.stop()
 
-    def update_hands(self):
-        self.embed.set_field_at(0, name="Dealer's Hand:", value=self.blackjack.showDealerHand())
-        self.embed.set_field_at(1, name="Player's Hand:", value=self.blackjack.showPlayerHand())
-
     @discord.ui.button(label="Hit", style=discord.ButtonStyle.primary)
     async def hit(self, interaction: discord.Interaction, _: discord.ui.Button):
-        self.blackjack.playerHit()
+        self.playerHand.addCard(self.deck.drawCard())
+        if self.playerHand.isBust() or self.playerHand.isBlackjack():
+            await self.endGame(interaction)
+            return
         self.update_hands()
-        if self.blackjack.isPlayerBust():
-            await self.finish(interaction)
-        else:
-            await interaction.response.edit_message(embed=self.embed, view=self)
+        await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label="Stand", style=discord.ButtonStyle.primary)
     async def stand(self, interaction: discord.Interaction, _: discord.ui.Button):
-        self.blackjack.dealerHandIsSecret = False
-        while self.blackjack.handValue(self.blackjack.dealerHand) < 17:
-            self.blackjack.dealerHit()
-            if self.blackjack.isDealerBust():
-                await self.finish(interaction)
-                return
-        await self.finish(interaction)
+        while self.dealerHand.handValue() < 17:
+            self.dealerHand.addCard(self.deck.drawCard())
+            if self.dealerHand.isBust():
+                break
+        await self.endGame(interaction)
 
 class Gambling(commands.Cog):
     def __init__(self, client: MiniSigma):
