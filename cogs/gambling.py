@@ -2,8 +2,10 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from bot import MiniSigma
-import config
+import logging
 import random
+
+logger = logging.getLogger("client.gambling")
 
 class card:
     def __init__(self, suit, value):
@@ -163,6 +165,7 @@ class Gambling(commands.Cog):
 
     @app_commands.command(name="blackjack", description="Play a game of blackjack")
     async def blackjack(self, interaction: discord.Interaction):
+        logger.info(f"{interaction.user.name} issued /blackjack, ({interaction.channel})")
         view = BlackjackView()
         await view.send(interaction)
 
