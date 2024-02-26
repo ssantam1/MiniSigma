@@ -23,10 +23,6 @@ class deck:
             for value in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']:
                 self.cards.append(card(suit, value))
     
-    def show(self):
-        for c in self.cards:
-            print(c)
-    
     def shuffle(self):
         for i in range(len(self.cards) - 1, 0, -1):
             r = random.randint(0, i)
@@ -105,16 +101,18 @@ class blackjack:
         dealer_hand_str = ""
         if self.dealerHandIsSecret:
             dealer_hand_str += str(self.dealerHand[0]) + " "
-            dealer_hand_str += "[? ?]"
+            dealer_hand_str += "[? ?]\nTotal: ?"
         else:
             for card in self.dealerHand:
                 dealer_hand_str += str(card) + " "
+            dealer_hand_str += f"\nTotal: {self.handValue(self.dealerHand)}"
         return dealer_hand_str
     
     def showPlayerHand(self) -> str:
         player_hand_str = ""
         for card in self.playerHand:
             player_hand_str += str(card) + " "
+        player_hand_str += f"\nTotal: {self.handValue(self.playerHand)}"
         return player_hand_str
 
 class BlackjackView(discord.ui.View):
