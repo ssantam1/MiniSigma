@@ -5,12 +5,12 @@ def generate(text: str="Default", small=False):
     resources_dir = os.path.join(os.path.curdir, 'resources')
 
     font_path = os.path.join(resources_dir, "Helvetica_Neue_CB.ttf")
-    font_size = 125
+    font_size = 45
     font_color = 'White'
     background_color = 'Black'
 
-    image_width = 1920
-    image_height = 1080
+    image_width = 1280
+    image_height = 720
 
     image = Image.new("RGB", (image_width, image_height), background_color)
     font = ImageFont.truetype(font_path, font_size)
