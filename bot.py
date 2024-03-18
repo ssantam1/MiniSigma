@@ -2,10 +2,8 @@ import discord
 import logging
 from discord.ext import commands
 from utility.database import Database
-import config
+from utility.config import *
 import os
-
-EXTENSIONS = ["debug", "fun", "voting", "scanner", "xkcd", "jolly", "gambling"]
 
 logger = logging.getLogger("client")
 
@@ -14,7 +12,6 @@ class MiniSigma(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="!", intents=discord.Intents.all())
         self.db = Database()
-        self.config = config
 
     async def setup_hook(self):
         for ext in EXTENSIONS:

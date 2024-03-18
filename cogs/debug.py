@@ -11,6 +11,7 @@ import logging
 from zoneinfo import ZoneInfo
 from tqdm import tqdm
 import utility.database as DB
+from utility.config import *
 
 logger = logging.getLogger("client.debug")
 
@@ -30,7 +31,7 @@ class Debug(commands.Cog):
 
         pfp_url = str(target.display_avatar.url)
 
-        embed = discord.Embed(url="https://cdn.discordapp.com/", color=self.client.config.EMBED_COLOR)
+        embed = discord.Embed(url="https://cdn.discordapp.com/", color=EMBED_COLOR)
         embed.set_author(name=f"{target.name}'s Profile Picture", icon_url=pfp_url)
         embed.set_image(url=pfp_url)
 
@@ -64,7 +65,7 @@ class Debug(commands.Cog):
         hours, seconds = divmod(seconds, 3600)
         minutes, seconds = divmod(seconds, 60)
 
-        embed = discord.Embed(color=self.client.config.EMBED_COLOR)
+        embed = discord.Embed(color=EMBED_COLOR)
         embed.set_author(name=f"{self.client.user.name} Uptime", icon_url=self.client.user.display_avatar.url)
         embed.add_field(name="Start Time:", value=self.start_time.strftime('%Y-%m-%d, %H:%M:%S'), inline=False)
         embed.add_field(name="Time Since Start:", value=f"{days} days, {hours} hr, {minutes} min, {seconds}s", inline=False)
