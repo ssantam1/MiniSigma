@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import utility.database as DB
-import config
+from utility.config import *
 from bot import MiniSigma
 from datetime import datetime
 
@@ -171,7 +171,7 @@ class Voting(commands.Cog):
             vote = "Downvotes:"
             db_list = self.db.haters(target.id, 5)
 
-        embed = discord.Embed(title=f"{target.nick or target.name}'s {command.capitalize()}:", color=config.EMBED_COLOR)
+        embed = discord.Embed(title=f"{target.nick or target.name}'s {command.capitalize()}:", color=EMBED_COLOR)
         embed.set_thumbnail(url=target.display_avatar.url)
 
         names = ""
@@ -206,7 +206,7 @@ class Voting(commands.Cog):
         logger.info(f"{interaction.user.name} issued /bestof {target}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        embed = embed = discord.Embed(color=config.EMBED_COLOR)
+        embed = embed = discord.Embed(color=EMBED_COLOR)
         embed.set_author(name=f"{target.nick or target.name}'s Best Posts:", icon_url=target.display_avatar.url)
 
         data = list()
@@ -226,7 +226,7 @@ class Voting(commands.Cog):
         '''Displays the most popular messages registered by the bot, or the from the current server if guild_only is set to True'''
         logger.info(f"{interaction.user.name} issued /top_messages, ({interaction.channel})")
 
-        embed = discord.Embed(color=config.EMBED_COLOR)
+        embed = discord.Embed(color=EMBED_COLOR)
         if guild_only:
             embed.set_author(name=f"{interaction.guild.name}'s Top Messages:", icon_url=interaction.guild.icon.url)
         else:
@@ -252,7 +252,7 @@ class Voting(commands.Cog):
         if guild_only:
             top = [user for user in top if interact.guild.get_member(user[0]) is not None]
 
-        embed = discord.Embed(color=config.EMBED_COLOR)
+        embed = discord.Embed(color=EMBED_COLOR)
         embed.set_author(name=f"{interact.guild.name} Leaderboard", icon_url=self.client.user.display_avatar.url)
 
         ranks: list[str] = []
@@ -298,7 +298,7 @@ class Voting(commands.Cog):
         logger.info(f"{interaction.user.name} issued /userinfo {target}, ({interaction.channel})")
         target = interaction.user if target == None else target
 
-        embed = discord.Embed(color=config.EMBED_COLOR)
+        embed = discord.Embed(color=EMBED_COLOR)
         embed.set_author(name=f"{target.nick or target.name}'s User Info:", icon_url=target.avatar.url)
 
         embed.add_field(name="Username:", value=target.name)

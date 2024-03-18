@@ -7,10 +7,7 @@ import logging
 import json
 import aiohttp
 from typing import Literal
-
-EMBED_ERROR_IMG_URL = "https://cdn.discordapp.com/attachments/1183931783742492772/1183931954823954502/download.jpeg"
-BOT_AVATAR_URL = "https://cdn.discordapp.com/avatars/1138642546906632244/74f748f089de48b3ea0e12f2fa4aed8e.png?size=1024"
-EMBED_COLOR = 0xADD8E6
+from utility.config import *
 
 logger = logging.getLogger("client.xkcd")
 
@@ -29,8 +26,8 @@ async def get_xkcd_embed(session: aiohttp.ClientSession, comic_num: int = None) 
     except Exception as error:
         logger.warning(f"Unable to fetch xkcd embed: {error}")
         embed.set_author(name=f"XKCD Fetch Error", icon_url=BOT_AVATAR_URL)
-        embed.set_image(url=EMBED_ERROR_IMG_URL)
-        embed.set_footer(text="Tell @theothermaurice that his shit is fucked!")
+        embed.set_image(url="")
+        embed.set_footer(text="Tell @theothermaurice to fix this __NOW__!")
 
     return embed
 
