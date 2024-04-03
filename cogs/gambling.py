@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from bot import MiniSigma
+import utility.database as DB
 import logging
 import random
 
@@ -40,16 +41,36 @@ class Deck:
     
     def drawCard(self) -> Card:
         return self.cards.pop()
-    
+
 class BlackjackInactiveView(discord.ui.View):
     def __init__(self):
         super().__init__()
+        self.active_user = None
 
     @discord.ui.button(label="Go Again!", style=discord.ButtonStyle.secondary, emoji="🔄")
     async def start(self, interaction: discord.Interaction, _: discord.ui.Button):
         self.stop()
         view = BlackjackView()
         await view.update(interaction)
+
+    @discord.ui.button(label="Change bet", style=discord.ButtonStyle.secondary, emoji="💵")
+    async def change_bet(self, interaction: discord.Interaction, _: discord.ui.Button):
+        self.active_user = interaction.user
+        await interaction.response.send_modal(BlackjackBetModal(self))
+
+class BlackjackBetModal(discord.ui.Modal):
+    def __init__(self, view: BlackjackInactiveView):
+        super().__init__(title="Change bet")
+        self.view = view
+
+    bet = discord.ui.TextInput(label="Bet amount:")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            selection = int(self.bet.value)
+        except ValueError:
+            await interaction.response.send_message('Invalid input! Please enter an integer.', ephemeral=True)
+            return
 
 class BlackjackView(discord.ui.View):
     def __init__(self):
@@ -131,6 +152,7 @@ class BlackjackView(discord.ui.View):
 class Gambling(commands.Cog):
     def __init__(self, client: MiniSigma):
         self.client = client
+        self.db: DB.Database = client.db
 
     @app_commands.command(name="blackjack", description="Play a game of blackjack")
     async def blackjack(self, interaction: discord.Interaction):
