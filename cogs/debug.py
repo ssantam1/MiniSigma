@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 from tqdm import tqdm
 import utility.database as DB
 from utility.config import *
+import csv
 
 logger = logging.getLogger("client.debug")
 
@@ -117,6 +118,21 @@ class Debug(commands.Cog):
     async def dump_reactions(self, ctx: commands.Context):
         '''Replies with the reaction database'''
         await self.send_txt(ctx, self.db.list_reactions())
+
+    @commands.command()
+    async def users_to_csv(self, ctx: commands.Context):
+        '''Replies with the user database in CSV format'''
+        users = self.db.list_users() # list of tuples (id, username, upvotes, downvotes, offset)
+        filename = "users.csv"
+
+        with open(filename, "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["ID", "Username", "Upvotes", "Downvotes", "Offset"])
+            for user in users:
+                writer.writerow(user)
+        with open(filename, "rb") as f:
+            await ctx.reply(file=discord.File(f, filename))
+        os.remove(filename)
 
     @commands.command()
     async def restart(self, ctx: commands.Context):
