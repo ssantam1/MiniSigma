@@ -125,7 +125,7 @@ class Debug(commands.Cog):
         users = self.db.list_users() # list of tuples (id, username, upvotes, downvotes, offset)
         filename = "users.csv"
 
-        with open(filename, "w", newline="") as file:
+        with open(filename, "w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             writer.writerow(["ID", "Username", "Upvotes", "Downvotes", "Offset"])
             for user in users:
