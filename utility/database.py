@@ -238,3 +238,24 @@ class Database:
         self.c.execute("DROP TABLE Reactions")
         self.conn.commit()
         self.create_tables()
+
+    # ========== GACHA ==========
+
+    def create_gacha(self):
+        '''Creates the Gacha tables'''
+        self.c.execute("""
+        CREATE TABLE GachaInventory (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            item_name INTEGER NOT NULL,
+            quantity INTEGER NOT NULL,
+            FOREIGN KEY(user_id) REFERENCES Users(id)
+        )
+        """)
+        
+        self.conn.commit()
+
+    def pull(self) -> tuple[int, str, int, int, int]:
+        '''Pulls a character from the gacha (Return random user from Users table)'''
+        self.c.execute("SELECT * FROM Users ORDER BY RANDOM() LIMIT 1")
+        return self.c.fetchone()
