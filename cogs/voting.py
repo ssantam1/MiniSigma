@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import re
 import logging
 import asyncio
@@ -128,26 +129,23 @@ class Voting(commands.Cog):
             return
 
         count_change = 1 if event.event_type == "REACTION_ADD" else -1
+        vote_value = 1 if str(event.emoji) == upvote else -1
+        
         if str(event.emoji) == upvote:
             new_user_score = self.db.upvote_user(target.id, count_change, voter.id)
-            vote_type = "upvote"
-            if count_change == 1:
-                self.db.add_reaction(voter.id, message, 1, datetime.now().isoformat())
-            else:
-                self.db.remove_reaction(voter.id, message, 1)
         else:
             new_user_score = self.db.downvote_user(target.id, count_change, voter.id)
-            vote_type = "downvote"
-            if count_change == 1:
-                self.db.add_reaction(voter.id, message, -1, datetime.now().isoformat())
-            else:
-                self.db.remove_reaction(voter.id, message, -1)
+
+        if count_change == 1:
+            self.db.add_reaction(voter.id, message, vote_value, datetime.now().isoformat())
+        else:
+            self.db.remove_reaction(voter.id, message, vote_value)
             
         self.db.update_username(target.id, target.name)
         self.db.update_username(voter.id, voter.name)
 
         await self.nick_update(target, new_user_score)
-        logger.info(f"{target} {event.event_type} {vote_type}: {voter} ({message.channel}), Score: {new_user_score}")
+        logger.info(f"{target} {event.event_type[9:]} {vote_value} from {voter} ({message.channel.name.encode('ascii', 'replace').decode()}), Score: {new_user_score}")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, RawReactionActionEvent: discord.RawReactionActionEvent):
