@@ -245,10 +245,10 @@ class Database:
         '''Creates the Gacha tables'''
         self.c.execute("""
         CREATE TABLE GachaInventory (
-            id INTEGER PRIMARY KEY,
             user_id INTEGER NOT NULL,
-            item_name INTEGER NOT NULL,
+            card_id INTEGER NOT NULL,
             quantity INTEGER NOT NULL,
+            PRIMARY KEY(user_id, card_id),
             FOREIGN KEY(user_id) REFERENCES Users(id)
         )
         """)
@@ -258,4 +258,20 @@ class Database:
     def pull(self) -> tuple[int, str, int, int, int]:
         '''Pulls a character from the gacha (Return random user from Users table)'''
         self.c.execute("SELECT * FROM Users ORDER BY RANDOM() LIMIT 1")
-        return self.c.fetchone()
+        card = self.c.fetchone()
+        return card
+    
+    def add_card_to_inv(self, user_id: int, card_id: int):
+        '''Adds a card to a user's inventory'''
+        self.c.execute("SELECT * FROM GachaInventory WHERE user_id = ? AND card_id = ?", (user_id, card_id))
+        result = self.c.fetchone()
+        if result is None:
+            self.c.execute("INSERT INTO GachaInventory (user_id, card_id, quantity) VALUES (?, ?, ?)", (user_id, card_id, 1))
+        else:
+            self.c.execute("UPDATE GachaInventory SET quantity = ? WHERE user_id = ? AND card_id = ?", (result[2] + 1, user_id, card_id))
+        self.conn.commit()
+    
+    def list_inventory(self, user_id: int) -> list[tuple[int, str, int]]:
+        '''Lists all cards in a user's inventory'''
+        self.c.execute("SELECT GachaInventory.card_id, Users.username, GachaInventory.quantity FROM GachaInventory JOIN Users ON GachaInventory.card_id = Users.id WHERE user_id = ?", (user_id,))
+        return self.c.fetchall()

@@ -71,14 +71,18 @@ class Gacha(commands.Cog):
 
         # API call to get avatar URL (Maybe start storing avatar ID in db to avoid API call?)
         user_on_card = await self.client.fetch_user(card_id)
-        card_image = str(user_on_card.display_avatar.url)
-        card_image = card_image.replace("?size=1024", "?size=128")
+        card_image = str(user_on_card.display_avatar.with_size(256))
 
-        card_embed = discord.Embed(title=f'{rarity} Character', url="https://cdn.discordapp.com/", color=self.get_color(rarity))
-        card_embed.add_field(name='Name', value=card_name, inline=False)
+        card_embed = discord.Embed(title=f"__**{card_name}**__", color=self.get_color(rarity))
+        card_embed.set_author(name=f'[{rarity.upper()}]')
+
         card_embed.add_field(name='ATK', value=card_atk, inline=True)
         card_embed.add_field(name='DEF', value=card_def, inline=True)
-        card_embed.set_image(url=card_image)
+        card_embed.set_thumbnail(url=card_image)
+
+        # Add rarity emoji to the footer
+        #card_embed.set_footer(text=f'Pulled by {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
+
         await interaction.response.send_message(embed=card_embed)
 
 async def setup(client: MiniSigma):
