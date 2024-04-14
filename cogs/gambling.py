@@ -183,10 +183,13 @@ class BlackjackView(discord.ui.View):
         await interaction.response.edit_message(embed=self.embed, view=BlackjackInactiveView(self.db, self.user, self.bet))
         self.stop()
 
+    async def send_player_error_msg(self, interaction: discord.Interaction):
+        await interaction.response.send_message("It's not your game! Please wait for this hand to be over!", ephemeral=True)
+
     @discord.ui.button(label="Hit", style=discord.ButtonStyle.primary, emoji="👊")
     async def hit(self, interaction: discord.Interaction, _: discord.ui.Button):
         if interaction.user != self.user:
-            return
+            await self.send_player_error_msg(interaction)
         
         self.playerHand.hit()
         if self.playerHand.is_busted():
@@ -198,7 +201,7 @@ class BlackjackView(discord.ui.View):
     @discord.ui.button(label="Stand", style=discord.ButtonStyle.blurple, emoji="👋")
     async def stand(self, interaction: discord.Interaction, _: discord.ui.Button):
         if interaction.user != self.user:
-            return
+            await self.send_player_error_msg(interaction)
         
         self.dealerHand.cards[1].down = False
         while self.dealerHand.value() < 17:
