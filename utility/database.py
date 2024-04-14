@@ -65,6 +65,8 @@ class Database:
         
         self.conn.commit()
 
+        self.create_gambling()
+
     # ========== USER MANAGEMENT ==========
     
     def add_user(self, id: int, name: str):
@@ -238,6 +240,48 @@ class Database:
         self.c.execute("DROP TABLE Reactions")
         self.conn.commit()
         self.create_tables()
+
+    # ========== GAMBLING ==========
+
+    def create_gambling(self):
+        '''Creates the Gambling tables'''
+
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS Transactions (
+            user_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            game TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+        """)
+        
+        self.conn.commit()
+
+    def add_transaction(self, user_id: int, amount: int, game: str):
+        '''Adds a transaction to the database'''
+
+        # Add transaction to database
+        self.c.execute("INSERT INTO Transactions (user_id, amount, game, timestamp) VALUES (?, ?, ?, ?)", (user_id, amount, game, datetime.now().isoformat()))
+
+        # Modify user's offset in Users table
+        self.c.execute("SELECT offset FROM Users WHERE id = ?", (user_id,))
+        offset = self.c.fetchone()[0]
+        self.c.execute("UPDATE Users SET offset = ? WHERE id = ?", (offset + amount, user_id))
+
+        self.conn.commit()
+
+    def is_valid_bet(self, user_id: int, amount: int) -> bool:
+        '''Checks if the user has enough money (IQ) to place a bet'''
+        iq = self.get_iq(user_id)
+        return iq >= amount
+
+    def place_bet(self, user_id: int, amount: int, game: str):
+        '''Places a bet on a game'''
+        self.add_transaction(user_id, -amount, game)
+
+    def win_bet(self, user_id: int, amount: int, game: str):
+        '''Wins a bet on a game'''
+        self.add_transaction(user_id, amount, game)
 
     # ========== GACHA ==========
 
