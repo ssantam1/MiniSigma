@@ -190,6 +190,7 @@ class BlackjackView(discord.ui.View):
     async def hit(self, interaction: discord.Interaction, _: discord.ui.Button):
         if interaction.user != self.user:
             await self.send_player_error_msg(interaction)
+            return
         
         self.playerHand.hit()
         if self.playerHand.is_busted():
@@ -202,6 +203,7 @@ class BlackjackView(discord.ui.View):
     async def stand(self, interaction: discord.Interaction, _: discord.ui.Button):
         if interaction.user != self.user:
             await self.send_player_error_msg(interaction)
+            return
         
         self.dealerHand.cards[1].down = False
         while self.dealerHand.value() < 17:
