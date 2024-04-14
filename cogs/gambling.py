@@ -184,6 +184,7 @@ class BlackjackView(discord.ui.View):
         self.stop()
 
     async def send_player_error_msg(self, interaction: discord.Interaction):
+        logger.info(f"{interaction.user.name} tried to play on another user's blackjack game")
         await interaction.response.send_message("It's not your game! Please wait for this hand to be over!", ephemeral=True)
 
     @discord.ui.button(label="Hit", style=discord.ButtonStyle.primary, emoji="👊")
