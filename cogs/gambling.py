@@ -85,6 +85,7 @@ class BlackjackInactiveView(discord.ui.View):
 
     @discord.ui.button(label="Go Again!", style=discord.ButtonStyle.secondary, emoji="🔄")
     async def start(self, interaction: discord.Interaction, _: discord.ui.Button):
+        self.active_user = interaction.user
         if not self.db.is_valid_bet(self.active_user.id, self.bet):
             logger.info(f"{self.active_user.name} tried to bet {self.bet} points on blackjack, but had insufficient funds")
             await interaction.response.send_message(f"Invalid bet amount: {self.bet}! You need more points!", ephemeral=True)
@@ -97,7 +98,6 @@ class BlackjackInactiveView(discord.ui.View):
 
     @discord.ui.button(label="Change bet", style=discord.ButtonStyle.secondary, emoji="💵")
     async def change_bet(self, interaction: discord.Interaction, _: discord.ui.Button):
-        self.active_user = interaction.user
         await interaction.response.send_modal(BlackjackBetModal(self))
 
 
@@ -185,6 +185,9 @@ class BlackjackView(discord.ui.View):
 
     @discord.ui.button(label="Hit", style=discord.ButtonStyle.primary, emoji="👊")
     async def hit(self, interaction: discord.Interaction, _: discord.ui.Button):
+        if interaction.user != self.user:
+            return
+        
         self.playerHand.hit()
         if self.playerHand.is_busted():
             await self.endGame(interaction)
@@ -194,6 +197,9 @@ class BlackjackView(discord.ui.View):
 
     @discord.ui.button(label="Stand", style=discord.ButtonStyle.blurple, emoji="👋")
     async def stand(self, interaction: discord.Interaction, _: discord.ui.Button):
+        if interaction.user != self.user:
+            return
+        
         self.dealerHand.cards[1].down = False
         while self.dealerHand.value() < 17:
             self.dealerHand.hit()
