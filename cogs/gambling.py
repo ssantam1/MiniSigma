@@ -236,6 +236,7 @@ class Gambling(commands.Cog):
 
     @app_commands.command(name="stats", description="Get your gambling stats")
     @app_commands.describe(member="The member whose stats you want to see")
+    @app_commands.guild_only()
     async def stats(self, interaction: discord.Interaction, member: discord.Member = None):
         logger.info(f"{interaction.user.name} issued /stats {member}")
 
