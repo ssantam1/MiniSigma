@@ -95,10 +95,7 @@ class BlackjackInactiveView(discord.ui.View):
             return
         
         self.stop()
-        # Get member object
-        member = await interaction.guild.fetch_member(self.active_user.id)
-
-        view = BlackjackView(db=self.db, user=member, bet=self.bet)
+        view = BlackjackView(db=self.db, user=self.active_user, bet=self.bet)
         await view.update(interaction)
 
     @discord.ui.button(label="Change bet", style=discord.ButtonStyle.secondary, emoji="💵")
@@ -227,14 +224,11 @@ class Gambling(commands.Cog):
 
     @app_commands.command(name="blackjack", description="Play a game of blackjack")
     @app_commands.describe(bet="The amount of money you want to bet")
+    @app_commands.guild_only()
     async def blackjack(self, interaction: discord.Interaction, bet: int = 0):
         if self.db.is_valid_bet(interaction.user.id, bet):
             logger.info(f"{interaction.user.name} issued /blackjack {bet}, ({interaction.channel})")
-
-            # Get member object
-            member = await interaction.guild.fetch_member(interaction.user.id)
-
-            view = BlackjackView(self.db, member, bet)
+            view = BlackjackView(self.db, interaction.user, bet)
             await view.send(interaction)
         else:
             logger.info(f"{interaction.user.name} issued /blackjack {bet}, but had insufficient funds ({interaction.channel})")
@@ -251,7 +245,6 @@ class Gambling(commands.Cog):
         embed.add_field(name="Total Points Won", value=won)
         embed.add_field(name="Total Points Lost", value=lost)
         embed.add_field(name="Net Gain", value=total, inline=False)
-
         embed.set_footer(text=f"Statistics generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         await interaction.response.send_message(embed=embed)
