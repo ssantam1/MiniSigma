@@ -87,7 +87,8 @@ class Voting(commands.Cog):
         self.client = client
         self.db: DB.Database = client.db
 
-    async def nick_update(self, member: discord.Member, iq_score: int) -> None:
+    @staticmethod
+    async def nick_update(member: discord.Member, iq_score: int) -> None:
         '''Update a member's nick with a new score'''
         try:
             current_nick = member.nick or member.name

@@ -5,6 +5,7 @@ from bot import MiniSigma
 import utility.database as DB
 from utility.config import *
 from datetime import datetime
+from cogs.voting import Voting
 import logging
 import random
 
@@ -147,6 +148,10 @@ class BlackjackView(discord.ui.View):
         self.embed.set_field_at(0, name="Dealer's Hand:", value=f"```{self.dealerHand}```", inline=False)
         self.embed.set_field_at(1, name="Player's Hand:", value=f"```{self.playerHand}```", inline=False)
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await Voting.nick_update(self.user, self.db.get_iq(self.user.id))
+
     async def send(self, interaction: discord.Interaction):
         await interaction.response.send_message(content=f"Current Stakes: {self.bet}", embed=self.embed, view=self)
 
@@ -176,6 +181,7 @@ class BlackjackView(discord.ui.View):
         
         if win_amount != 0:
             self.db.win_bet(self.user.id, win_amount, "blackjack")
+            await Voting.nick_update(self.user, self.db.get_iq(self.user.id))
             self.embed.set_footer(text=f"Winnings: {win_amount-self.bet} points")
             logger.info(f"{self.user.name} won {win_amount-self.bet} points in blackjack")
         else:
