@@ -235,13 +235,18 @@ class Gambling(commands.Cog):
             await interaction.response.send_message("Invalid bet amount! You need more points!", ephemeral=True)
 
     @app_commands.command(name="stats", description="Get your gambling stats")
-    async def stats(self, interaction: discord.Interaction):
-        logger.info(f"{interaction.user.name} issued /stats")
-        won, lost = self.db.gambling_stats(interaction.user.id)
+    @app_commands.describe(member="The member whose stats you want to see")
+    async def stats(self, interaction: discord.Interaction, member: discord.Member = None):
+        logger.info(f"{interaction.user.name} issued /stats {member}")
+
+        if member is None:
+            member = interaction.user
+
+        won, lost = self.db.gambling_stats(member.id)
         total = won - lost
 
         embed = discord.Embed(color=EMBED_COLOR)
-        embed.set_author(name=f"{interaction.user.name}'s Gambling Stats", icon_url=interaction.user.display_avatar.url)
+        embed.set_author(name=f"{member.name}'s Gambling Stats", icon_url=member.display_avatar.url)
         embed.add_field(name="Total Points Won", value=won)
         embed.add_field(name="Total Points Lost", value=lost)
         embed.add_field(name="Net Gain", value=total, inline=False)
