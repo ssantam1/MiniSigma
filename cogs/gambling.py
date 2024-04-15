@@ -3,6 +3,8 @@ from discord import app_commands
 from discord.ext import commands
 from bot import MiniSigma
 import utility.database as DB
+from utility.config import *
+from datetime import datetime
 import logging
 import random
 
@@ -228,6 +230,22 @@ class Gambling(commands.Cog):
         else:
             logger.info(f"{interaction.user.name} issued /blackjack {bet}, but had insufficient funds ({interaction.channel})")
             await interaction.response.send_message("Invalid bet amount! You need more points!", ephemeral=True)
+
+    @app_commands.command(name="stats", description="Get your gambling stats")
+    async def stats(self, interaction: discord.Interaction):
+        logger.info(f"{interaction.user.name} issued /stats")
+        won, lost = self.db.gambling_stats(interaction.user.id)
+        total = won - lost
+
+        embed = discord.Embed(color=EMBED_COLOR)
+        embed.set_author(name=f"{interaction.user.name}'s Gambling Stats", icon_url=interaction.user.display_avatar.url)
+        embed.add_field(name="Total Points Won", value=won)
+        embed.add_field(name="Total Points Lost", value=lost)
+        embed.add_field(name="Net Gain", value=total, inline=False)
+
+        embed.set_footer(text=f"Statistics generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+        await interaction.response.send_message(embed=embed)
 
 async def setup(client: MiniSigma):
     await client.add_cog(Gambling(client))

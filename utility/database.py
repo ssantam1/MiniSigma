@@ -283,6 +283,14 @@ class Database:
         '''Wins a bet on a game'''
         self.add_transaction(user_id, amount, game)
 
+    def gambling_stats(self, user_id: int) -> tuple[int, int]:
+        '''Returns the total amount won and lost by a user'''
+        self.c.execute("SELECT SUM(amount) FROM Transactions WHERE user_id = ? AND amount > 0", (user_id,))
+        won = self.c.fetchone()[0] or 0
+        self.c.execute("SELECT SUM(amount) FROM Transactions WHERE user_id = ? AND amount < 0", (user_id,))
+        lost = self.c.fetchone()[0] or 0
+        return (won, -lost)
+
     # ========== GACHA ==========
 
     def create_gacha(self):
