@@ -95,7 +95,6 @@ class BlackjackInactiveView(discord.ui.View):
             return
         
         self.stop()
-        logger.info(f"{self.active_user.name} bet {self.bet} points on blackjack")
         # Get member object
         member = await interaction.guild.fetch_member(self.active_user.id)
 
@@ -137,6 +136,7 @@ class BlackjackView(discord.ui.View):
         self.user = user
         self.bet = bet
         self.db.place_bet(user.id, bet, "blackjack")
+        logger.info(f"{self.user.name} -{self.bet} points on blackjack")
 
         self.deck = Deck()
         self.playerHand = BlackjackHand(self.deck)
@@ -181,7 +181,7 @@ class BlackjackView(discord.ui.View):
         if win_amount != 0:
             self.db.win_bet(self.user.id, win_amount, "blackjack")
             self.embed.set_footer(text=f"Winnings: {win_amount-self.bet} points")
-            logger.info(f"{self.user.name} won {win_amount-self.bet} points in blackjack")
+            logger.info(f"{self.user.name} +{win_amount} points from blackjack")
         else:
             self.embed.set_footer(text=f"Loss: {self.bet} points")
 
