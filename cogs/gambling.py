@@ -96,7 +96,10 @@ class BlackjackInactiveView(discord.ui.View):
         
         self.stop()
         logger.info(f"{self.active_user.name} bet {self.bet} points on blackjack")
-        view = BlackjackView(db=self.db, user=self.active_user, bet=self.bet)
+        # Get member object
+        member = await interaction.guild.fetch_member(self.active_user.id)
+
+        view = BlackjackView(db=self.db, user=member, bet=self.bet)
         await view.update(interaction)
 
     @discord.ui.button(label="Change bet", style=discord.ButtonStyle.secondary, emoji="💵")
@@ -127,7 +130,7 @@ class BlackjackBetModal(discord.ui.Modal):
 
 
 class BlackjackView(discord.ui.View):
-    def __init__(self, db: DB.Database, user: discord.User, bet: int = 0):
+    def __init__(self, db: DB.Database, user: discord.Member, bet: int = 0):
         '''View for the blackjack game.'''
         super().__init__(timeout=None)
         self.db = db
@@ -147,10 +150,6 @@ class BlackjackView(discord.ui.View):
     def update_hands(self):
         self.embed.set_field_at(0, name="Dealer's Hand:", value=f"```{self.dealerHand}```", inline=False)
         self.embed.set_field_at(1, name="Player's Hand:", value=f"```{self.playerHand}```", inline=False)
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await Voting.nick_update(self.user, self.db.get_iq(self.user.id))
 
     async def send(self, interaction: discord.Interaction):
         await interaction.response.send_message(content=f"Current Stakes: {self.bet}", embed=self.embed, view=self)
@@ -181,12 +180,12 @@ class BlackjackView(discord.ui.View):
         
         if win_amount != 0:
             self.db.win_bet(self.user.id, win_amount, "blackjack")
-            await Voting.nick_update(self.user, self.db.get_iq(self.user.id))
             self.embed.set_footer(text=f"Winnings: {win_amount-self.bet} points")
             logger.info(f"{self.user.name} won {win_amount-self.bet} points in blackjack")
         else:
             self.embed.set_footer(text=f"Loss: {self.bet} points")
 
+        await Voting.nick_update(self.user, self.db.get_iq(self.user.id))
         self.embed.add_field(name="Result:", value=win_str, inline=False)
         await interaction.response.edit_message(embed=self.embed, view=BlackjackInactiveView(self.db, self.user, self.bet))
         self.stop()
@@ -231,7 +230,11 @@ class Gambling(commands.Cog):
     async def blackjack(self, interaction: discord.Interaction, bet: int = 0):
         if self.db.is_valid_bet(interaction.user.id, bet):
             logger.info(f"{interaction.user.name} issued /blackjack {bet}, ({interaction.channel})")
-            view = BlackjackView(self.db, interaction.user, bet)
+
+            # Get member object
+            member = await interaction.guild.fetch_member(interaction.user.id)
+
+            view = BlackjackView(self.db, member, bet)
             await view.send(interaction)
         else:
             logger.info(f"{interaction.user.name} issued /blackjack {bet}, but had insufficient funds ({interaction.channel})")
