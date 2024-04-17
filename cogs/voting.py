@@ -273,6 +273,35 @@ class Voting(commands.Cog):
         embed.add_field(name="Score", value="\n".join(scores), inline=True)
         await interact.response.send_message(embed=embed)
 
+    @app_commands.command(name="loserboard", description="Displays bottom n scoring individuals")
+    @app_commands.describe(guild_only="Set to true to only display score from the current server")
+    async def loserboard(self, interact: discord.Interaction, guild_only: bool = False):
+        logger.info(f"{interact.user.name} issued /loserboard guild_only:{guild_only}, ({interact.channel})")
+        top = self.db.loserboard()
+
+        if guild_only:
+            top = [user for user in top if interact.guild.get_member(user[0]) is not None]
+
+        embed = discord.Embed(color=EMBED_COLOR)
+        embed.set_author(name=f"{interact.guild.name} Loserboard", icon_url=self.client.user.display_avatar.url)
+
+        ranks: list[str] = []
+        usernames: list[str] = []
+        scores: list[str] = []
+
+        for i in range(10):
+            user = top[-(i+1)]
+            display_name = user[1]
+
+            ranks.append(str(i+1))
+            usernames.append(display_name)
+            scores.append(str(self.db.get_iq(user[0])))
+
+        embed.add_field(name="Rank", value="\n".join(ranks), inline=True)
+        embed.add_field(name="Name", value="\n".join(usernames), inline=True)
+        embed.add_field(name="Score", value="\n".join(scores), inline=True)
+        await interact.response.send_message(embed=embed)
+
     @commands.command()
     async def manual_save(self, ctx: commands.Context):
         tasklist = []
