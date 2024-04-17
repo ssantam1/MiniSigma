@@ -2,9 +2,12 @@ import random
 import discord
 from discord import app_commands
 from discord.ext import commands
+import aiohttp
 
 from bot import MiniSigma
 from enum import Enum
+import PIL
+import io
 import utility.database as DB
 
 class Rarity(Enum):
@@ -63,6 +66,25 @@ class Gacha(commands.Cog):
         rarity_counts = '\n'.join([f'{rarity}: {count}' for rarity, count in rarities.items()])
         await ctx.send(f'All rarities:\n{rarity_counts}')
 
+    async def get_manual_url(self, user_id: int) -> str:
+        user = await self.client.fetch_user(user_id)
+        avatar_url = user.display_avatar.url
+        async with aiohttp.ClientSession() as session:
+            async with session.get(avatar_url) as response:
+                avatar_bytes = await response.read()
+
+        avatar_file = io.BytesIO(avatar_bytes)
+
+        avatar_image = PIL.Image.open(avatar_file)
+        avatar_image = avatar_image.resize((128, 128))
+        avatar_file = io.BytesIO()
+        avatar_image.save(avatar_file, format='PNG')
+        avatar_file.seek(0)
+
+        channel = self.client.get_channel(1183931783742492772) # Replace with the ID of the channel
+        message = await channel.send(file=discord.File(avatar_file, 'avatar.png'))
+        return message.attachments[0].url
+
     @app_commands.command(name="pull", description="Pull a character from the gacha")
     async def pull(self, interaction: discord.Interaction):
         pulled_card: tuple[int, str, int, int, int] = self.db.pull()
@@ -79,9 +101,6 @@ class Gacha(commands.Cog):
         card_embed.add_field(name='ATK', value=card_atk, inline=True)
         card_embed.add_field(name='DEF', value=card_def, inline=True)
         card_embed.set_thumbnail(url=card_image)
-
-        # Add rarity emoji to the footer
-        #card_embed.set_footer(text=f'Pulled by {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
 
         await interaction.response.send_message(embed=card_embed)
 
