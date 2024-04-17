@@ -69,6 +69,9 @@ class BlackjackHand:
     
     def is_busted(self) -> bool:
         return self.value() > 21
+    
+    def is_blackjack(self) -> bool:
+        return self.value() == 21 and len(self.cards) == 2
 
     def __str__(self) -> str:
         hand_str = ""
@@ -157,22 +160,25 @@ class BlackjackView(discord.ui.View):
     async def endGame(self, interaction: discord.Interaction):
         self.update_hands()
         
-        player = self.playerHand.value()
-        dealer = self.dealerHand.value()
+        player = self.playerHand
+        dealer = self.dealerHand
 
-        if player > dealer and player < 21: # Standard player win
-            win_str, win_amount = "Player wins!", self.bet*2
-        elif dealer > player and dealer < 21: # Standard dealer win
-            win_str, win_amount = "Dealer wins!", 0
-        elif dealer > 21: # Dealer bust
-            win_str, win_amount = "Dealer busts! Player wins!", self.bet*2
-        elif player > 21: # Player bust
+        if player.is_blackjack():
+            if dealer.is_blackjack():
+                win_str, win_amount = "It's a tie!", self.bet
+            else:
+                win_str, win_amount = "Player wins! Blackjack!", int(self.bet*2.5)
+        elif dealer.is_blackjack():
+            win_str, win_amount = "Dealer wins! Blackjack!", 0
+        elif player.is_busted():
             win_str, win_amount = "Player busts! Dealer wins!", 0
-        elif player == dealer: # Push
+        elif dealer.is_busted():
+            win_str, win_amount = "Dealer busts! Player wins!", self.bet*2
+        elif player.value() == dealer.value():
             win_str, win_amount = "It's a tie!", self.bet
-        elif player == 21: # Player blackjack
-            win_str, win_amount = "Player wins! Blackjack!", int(self.bet*2.5)
-        else: # dealer == 21: Dealer blackjack
+        elif player.value() > dealer.value():
+            win_str, win_amount = "Player wins!", self.bet*2
+        else:
             win_str, win_amount = "Dealer wins!", 0
         
         if win_amount != 0:
@@ -250,7 +256,7 @@ class Gambling(commands.Cog):
         embed.set_author(name=f"{member.name}'s Gambling Stats", icon_url=member.display_avatar.url)
         embed.add_field(name="Total Points Won", value=won)
         embed.add_field(name="Total Points Lost", value=lost)
-        embed.add_field(name="Net Gain", value=total, inline=False)
+        embed.add_field(name="Net Gain", value=total)
         embed.set_footer(text=f"Statistics generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         await interaction.response.send_message(embed=embed)
