@@ -148,7 +148,7 @@ class Voting(commands.Cog):
         self.db.update_username(voter.id, voter.name)
 
         await self.nick_update(target, new_user_score)
-        logger.info(f"{target} {event.event_type[9:]} {vote_value} from {voter} ({message.channel.name.encode('ascii', 'replace').decode()}), Score: {new_user_score}")
+        logger.info(f"{target} {event.event_type[9:]} {vote_value} from {voter} ({message.channel.name}), Score: {new_user_score}")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, RawReactionActionEvent: discord.RawReactionActionEvent):
