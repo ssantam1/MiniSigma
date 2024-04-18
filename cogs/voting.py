@@ -298,14 +298,16 @@ class Voting(commands.Cog):
         for user in top:
             user_id, display_name, iq = user
 
-            if iq == prev_iq:
-                ranks.append(str(index))
-            else:
-                ranks.append("")
+            if iq != prev_iq:
+                index += 1
+
+            ranks.append(str(index))
 
             usernames.append(display_name)
             scores.append(str(self.db.get_iq(user[0])))
+
             prev_iq = iq
+
             if index == 10:
                 break
 
