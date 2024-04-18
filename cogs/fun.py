@@ -30,7 +30,7 @@ class Fun(commands.Cog):
             response = "https://media.tenor.com/67LIumILNRsAAAAd/ltg-low-tier-god.gif"
             await msg.channel.send(response)
 
-        if self.client.user.mentioned_in(msg) and not msg.mention_everyone:
+        if self.client.user.mentioned_in(msg) and not msg.mention_everyone and not msg.author.bot:
             fpath = os.path.join(self.resources_dir, "quotes.json")
             with open(fpath, "r") as file:
                 quotes = json.load(file)
