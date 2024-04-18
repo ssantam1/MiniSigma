@@ -279,8 +279,8 @@ class Voting(commands.Cog):
         logger.info(f"{interact.user.name} issued /loserboard guild_only:{guild_only}, ({interact.channel})")
         top = self.db.loserboard()
         
-        # Remove user with ID 1138642546906632244 from the list
-        top = [user for user in top if user[0] != 1138642546906632244]
+        # Remove the bot from the list
+        top = [user for user in top if user[0] != self.client.user.id]
 
         if guild_only:
             top = [user for user in top if interact.guild.get_member(user[0]) is not None]
@@ -299,14 +299,15 @@ class Voting(commands.Cog):
             user_id, display_name, iq = user
 
             if iq != prev_iq:
-                index += 1
-
-            ranks.append(str(index))
+                ranks.append(str(index))
+            else:
+                ranks.append("")
 
             usernames.append(display_name)
             scores.append(str(self.db.get_iq(user[0])))
 
             prev_iq = iq
+            index += 1
 
             if index == 10:
                 break
