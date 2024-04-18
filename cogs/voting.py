@@ -292,20 +292,21 @@ class Voting(commands.Cog):
         usernames: list[str] = []
         scores: list[str] = []
 
+        index = 1
         prev_iq = None
 
-        for list_index, user in enumerate(top):
+        for user in top:
             user_id, display_name, iq = user
 
             if iq == prev_iq:
-                ranks.append(str(list_index+1))
+                ranks.append(str(index))
             else:
                 ranks.append("")
 
             usernames.append(display_name)
             scores.append(str(self.db.get_iq(user[0])))
             prev_iq = iq
-            if list_index == 9:
+            if index == 10:
                 break
 
         embed.add_field(name="Rank", value="\n".join(ranks), inline=True)
