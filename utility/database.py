@@ -139,7 +139,7 @@ class Database:
     
     def loserboard(self) -> list[tuple[int, str, int]]:
         '''Returns users in order of score as a list of tuples (user_id, username, downvotes-upvotes)'''
-        self.c.execute("SELECT id, username, upvotes-downvotes+offset FROM Users ORDER BY upvotes-downvotes+offset DESC")
+        self.c.execute("SELECT id, username, upvotes-downvotes+offset FROM Users ORDER BY upvotes-downvotes+offset ASC")
         return self.c.fetchall()
 
     def fans(self, id: int, num: int) -> list[tuple[int, str, int]]:
