@@ -138,7 +138,7 @@ class Debug(commands.Cog):
         '''Replies with the member of the week'''
         motw = self.db.get_memberotw(ctx.guild.id)
         if motw:
-            await ctx.reply(f"Member of the week: {motw[1]}")
+            await ctx.reply(f"Member of the week: <@{motw[0]}>, with {motw[2]} score gained!")
         else:
             await ctx.reply("No member of the week found")
 

@@ -165,6 +165,7 @@ class Database:
     def get_memberotw(self, guild_id: int) -> tuple[int, str, int]:
         '''Returns the member with the most upvotes-downvotes recieved over the past week in guid with guild_id as a tuple (id, username, upvotes-downvotes)'''
         self.c.execute("SELECT Users.id, Users.username, SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id JOIN Users ON Messages.author_id = Users.id WHERE Messages.guild_id = ? AND Messages.timestamp > datetime('now', '-7 day') GROUP BY Users.id ORDER BY SUM(Reactions.vote_type) DESC", (guild_id,))
+        return self.c.fetchone()
     
     # ========== EMOJI MANAGEMENT ==========
 
