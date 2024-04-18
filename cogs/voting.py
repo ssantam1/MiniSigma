@@ -307,10 +307,11 @@ class Voting(commands.Cog):
             scores.append(str(self.db.get_iq(user[0])))
 
             prev_iq = iq
-            index += 1
 
             if index == 10:
                 break
+            
+            index += 1
 
         embed.add_field(name="Rank", value="\n".join(ranks), inline=True)
         embed.add_field(name="Name", value="\n".join(usernames), inline=True)
