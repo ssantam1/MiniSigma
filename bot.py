@@ -28,7 +28,7 @@ class MiniSigma(commands.Bot):
         logger.info(f"{self.user} is now running!")
 
 if __name__ == '__main__':
-    file_handler = logging.FileHandler("bot.log", encoding="utf-8")
+    file_handler = logging.FileHandler("bot.log", encoding="utf-16")
     file_handler.setFormatter(logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', '%Y-%m-%d %H:%M:%S', style='{'))
 
     root_logger = logging.getLogger()
