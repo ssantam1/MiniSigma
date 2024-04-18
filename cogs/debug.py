@@ -9,7 +9,6 @@ import time
 import datetime
 import logging
 from zoneinfo import ZoneInfo
-from tqdm import tqdm
 import utility.database as DB
 from utility.config import *
 import csv
