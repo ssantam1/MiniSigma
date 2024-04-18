@@ -162,6 +162,10 @@ class Database:
         self.c.execute("SELECT SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id WHERE Messages.author_id = ? AND Messages.guild_id = ?", (id, guild_id))
         return self.c.fetchone()[0]
     
+    def get_memberotw(self, guild_id: int) -> tuple[int, str, int]:
+        '''Returns the member with the most upvotes-downvotes recieved over the past week in guid with guild_id as a tuple (id, username, upvotes-downvotes)'''
+        self.c.execute("SELECT Users.id, Users.username, SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id JOIN Users ON Messages.author_id = Users.id WHERE Messages.guild_id = ? AND Messages.timestamp > datetime('now', '-7 day') GROUP BY Users.id ORDER BY SUM(Reactions.vote_type) DESC", (guild_id,))
+    
     # ========== EMOJI MANAGEMENT ==========
 
     def add_guild(self, id: int) -> tuple[str, str]:
@@ -222,6 +226,18 @@ class Database:
             self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type), Messages.content FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id WHERE guild_id = ? GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC", (guild_id,))
             
         return self.c.fetchall()
+    
+    def get_messageotw(self, guild_id: int) -> tuple[int, int, int, int, str, str]:
+        '''Returns highest-scoring message from the past week as a tuple (id, channel_id, guild_id author_id, content, timestamp)'''
+        self.c.execute("""
+            SELECT Messages.*, SUM(Reactions.vote_type) as votes
+            FROM Messages
+            LEFT JOIN Reactions ON Messages.id = Reactions.message_id
+            WHERE Messages.guild_id = ? AND Messages.timestamp > datetime('now', '-7 day')
+            GROUP BY Messages.id
+            ORDER BY votes DESC
+        """, (guild_id,))
+        return self.c.fetchone()
     
     def add_message(self, message: Message) -> None:
         '''Adds a message to the database if it doesn't exist already.'''

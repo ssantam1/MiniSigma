@@ -134,6 +134,24 @@ class Debug(commands.Cog):
         os.remove(filename)
 
     @commands.command()
+    async def memberotw(self, ctx: commands.Context):
+        '''Replies with the member of the week'''
+        motw = self.db.get_memberotw(ctx.guild.id)
+        if motw:
+            await ctx.reply(f"Member of the week: {motw[1]}")
+        else:
+            await ctx.reply("No member of the week found")
+
+    @commands.command()
+    async def messageotw(self, ctx: commands.Context):
+        '''Replies with the message of the week'''
+        motw = self.db.get_messageotw(ctx.guild.id)
+        if motw:
+            await ctx.reply(f"Message of the week: {motw}")
+        else:
+            await ctx.reply("No message of the week found")
+
+    @commands.command()
     async def restart(self, ctx: commands.Context):
         '''Restarts bot'''
         subprocess.Popen([sys.executable, "bot.py"])
