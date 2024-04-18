@@ -4,7 +4,9 @@ from discord.ext import commands
 from utility.database import Database
 from utility.config import *
 import os
+import colorama
 
+colorama.init()
 logger = logging.getLogger("client")
 
 class MiniSigma(commands.Bot):
