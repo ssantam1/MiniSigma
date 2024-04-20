@@ -295,7 +295,7 @@ class Database:
     def is_valid_bet(self, user_id: int, amount: int) -> bool:
         '''Checks if the user has enough money (IQ) to place a bet'''
         iq = self.get_iq(user_id)
-        return iq >= amount
+        return iq >= amount and amount > 0
 
     def place_bet(self, user_id: int, amount: int, game: str):
         '''Places a bet on a game'''
