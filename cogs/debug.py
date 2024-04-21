@@ -46,6 +46,7 @@ class Debug(commands.Cog):
         await ctx.send(f"{iq} IQ points have been given to {user.mention}")
 
     @commands.command()
+    @commands.is_owner()
     async def restart(self, ctx: commands.Context):
         '''Restarts bot'''
         subprocess.Popen([sys.executable, "bot.py"])
@@ -53,6 +54,7 @@ class Debug(commands.Cog):
         await self.client.close()
 
     @commands.command()
+    @commands.is_owner()
     async def off(self, ctx: commands.Context):
         '''Turns off the bot'''
         await ctx.send("Shutting down...")
