@@ -156,7 +156,7 @@ class Debug(commands.Cog):
     async def give_iq(self, ctx: commands.Context, user: discord.Member, iq: int):
         '''Gives a user a number of IQ'''
         # Add iq to user's offset
-        self.db.c.execute("UPDATE Users SET offset = offset + ? id = ?", (iq, user.id))
+        self.db.c.execute("UPDATE Users SET offset = offset + ? WHERE id = ?", (iq, user.id))
         await ctx.send(f"{iq} IQ points have been given to {user.mention}")
 
     @commands.command()
