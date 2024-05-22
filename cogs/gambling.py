@@ -152,7 +152,10 @@ class BlackjackView(discord.ui.View):
         self.embed.set_field_at(1, name="Player's Hand:", value=f"```{self.playerHand}```", inline=False)
 
     async def send(self, interaction: discord.Interaction):
-        await interaction.response.send_message(content=f"Current Stakes: {self.bet}", embed=self.embed, view=self)
+        if self.dealerHand.is_blackjack():
+            await self.endGame(interaction)
+        else:
+            await interaction.response.send_message(content=f"Current Stakes: {self.bet}", embed=self.embed, view=self)
 
     async def update(self, interaction: discord.Interaction):
         await interaction.response.edit_message(content=f"Current Stakes: {self.bet}", embed=self.embed, view=self)
