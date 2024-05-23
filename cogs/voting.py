@@ -159,7 +159,16 @@ class Voting(commands.Cog):
         await self.process_reaction(RawReactionActionEvent)
 
     # ==================== Commands ====================
-        
+    
+    @app_commands.command(name="iq", description="Displays current IQ score")
+    @app_commands.describe(target="The server member you would like to check the IQ of")
+    async def iq(self, interaction: discord.Interaction, target: discord.Member = None):
+        '''Displays the user's current IQ score'''
+        target = interaction.user if target == None else target
+        logger.info(f"{interaction.user.name} issued /iq {target}, ({interaction.channel})")
+        iq = self.db.get_iq(target.id)
+        await interaction.response.send_message(f"{target.display_name}'s IQ is: {iq}")
+
     async def user_sentiment(self, interaction: discord.Interaction, target: discord.Member) -> discord.Embed:
         '''Returns an embed with a list of target's fans or haters, based on context commmand'''
         target = interaction.user if target == None else target
