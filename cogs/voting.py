@@ -167,7 +167,8 @@ class Voting(commands.Cog):
         target = interaction.user if target == None else target
         logger.info(f"{interaction.user.name} issued /iq {target}, ({interaction.channel})")
         iq = self.db.get_iq(target.id)
-        await interaction.response.send_message(f"{target.display_name}'s IQ is: {iq}")
+        name = re.sub(r"\s*\([^)]*\)$", "", target.display_name)
+        await interaction.response.send_message(f"{name}'s IQ is: {iq}")
 
     async def user_sentiment(self, interaction: discord.Interaction, target: discord.Member) -> discord.Embed:
         '''Returns an embed with a list of target's fans or haters, based on context commmand'''
