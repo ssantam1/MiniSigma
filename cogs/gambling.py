@@ -188,7 +188,10 @@ class BlackjackView(discord.ui.View):
         if win_amount != 0:
             self.db.win_bet(self.user.id, win_amount, "blackjack")
             self.embed.set_footer(text=f"Winnings: {win_amount-self.bet} points")
-            self.embed.color = discord.Color.green()
+            if win_amount > self.bet:
+                self.embed.color = discord.Color.green()
+            else:
+                self.embed.color = discord.Color.gold()
             logger.info(f"{self.user.name} +{win_amount} points from blackjack")
         else:
             self.embed.set_footer(text=f"Loss: {self.bet} points")
