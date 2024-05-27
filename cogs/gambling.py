@@ -143,7 +143,8 @@ class BlackjackView(discord.ui.View):
         self.dealerHand = BlackjackHand(self.deck)
         self.dealerHand.cards[1].down = True
 
-        self.embed = discord.Embed(title="BlackJack", color=discord.Color.green())
+        self.embed = discord.Embed(title=f"Stakes: {self.bet}", color=EMBED_COLOR)
+        self.embed.set_author(name="Blackjack Game", icon_url=self.user.display_avatar.url)
         self.embed.add_field(name="Dealer's Hand:", value=f"```{self.dealerHand}```", inline=False)
         self.embed.add_field(name="Player's Hand:", value=f"```{self.playerHand}```", inline=False)
 
@@ -155,10 +156,10 @@ class BlackjackView(discord.ui.View):
         if self.dealerHand.is_blackjack():
             await self.endGame(interaction)
         else:
-            await interaction.response.send_message(content=f"Current Stakes: {self.bet}", embed=self.embed, view=self)
+            await interaction.response.send_message(embed=self.embed, view=self)
 
     async def update(self, interaction: discord.Interaction):
-        await interaction.response.edit_message(content=f"Current Stakes: {self.bet}", embed=self.embed, view=self)
+        await interaction.response.edit_message(embed=self.embed, view=self)
 
     async def endGame(self, interaction: discord.Interaction):
         self.update_hands()
@@ -187,9 +188,11 @@ class BlackjackView(discord.ui.View):
         if win_amount != 0:
             self.db.win_bet(self.user.id, win_amount, "blackjack")
             self.embed.set_footer(text=f"Winnings: {win_amount-self.bet} points")
+            self.embed.color = discord.Color.green()
             logger.info(f"{self.user.name} +{win_amount} points from blackjack")
         else:
             self.embed.set_footer(text=f"Loss: {self.bet} points")
+            self.embed.color = discord.Color.red()
 
         await Voting.nick_update(self.user, self.db.get_iq(self.user.id))
         self.embed.add_field(name="Result:", value=win_str, inline=False)
