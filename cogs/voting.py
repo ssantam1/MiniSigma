@@ -260,11 +260,13 @@ class Voting(commands.Cog):
         logger.info(f"{interact.user.name} issued /leaderboard guild_only:{guild_only}, ({interact.channel})")
         top = self.db.leaderboard()
 
+        embed = discord.Embed(color=EMBED_COLOR)
+
         if guild_only:
             top = [user for user in top if interact.guild.get_member(user[0]) is not None]
-
-        embed = discord.Embed(color=EMBED_COLOR)
-        embed.set_author(name=f"{interact.guild.name} Leaderboard", icon_url=self.client.user.display_avatar.url)
+            embed.set_author(name=f"{interact.guild.name} Leaderboard", icon_url=interact.guild.icon.url)
+        else:
+            embed.set_author(name="MiniSigma Leaderboard", icon_url=self.client.user.display_avatar.url)
 
         ranks: list[str] = []
         usernames: list[str] = []
