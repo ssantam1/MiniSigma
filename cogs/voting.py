@@ -96,7 +96,7 @@ class Voting(commands.Cog):
             current_nick = member.name
             
         nick_sans_iq: str = re.sub(r"\s*\([^)]*\)$", "", current_nick)
-        new_nick = nick_sans_iq + (f" ({iq_score} IQ)")
+        new_nick = nick_sans_iq + (f" ({iq_score} {POINTS_NAME})")
         try:
             await member.edit(nick=new_nick)
         except discord.errors.Forbidden:
@@ -160,15 +160,15 @@ class Voting(commands.Cog):
 
     # ==================== Commands ====================
     
-    @app_commands.command(name="iq", description="Displays current IQ score")
-    @app_commands.describe(target="The server member you would like to check the IQ of")
+    @app_commands.command(name=POINTS_NAME, description=f"Displays current {POINTS_NAME} score")
+    @app_commands.describe(target=f"The server member you would like to check the {POINTS_NAME} of")
     async def iq(self, interaction: discord.Interaction, target: discord.Member = None):
         '''Displays the user's current IQ score'''
         target = interaction.user if target == None else target
         logger.info(f"{interaction.user.name} issued /iq {target}, ({interaction.channel})")
         iq = self.db.get_iq(target.id)
         name = re.sub(r"\s*\([^)]*\)$", "", target.display_name)
-        await interaction.response.send_message(f"{name}'s IQ is: {iq}")
+        await interaction.response.send_message(f"{name}'s {POINTS_NAME}: {iq}")
 
     async def user_sentiment(self, interaction: discord.Interaction, target: discord.Member) -> discord.Embed:
         '''Returns an embed with a list of target's fans or haters, based on context commmand'''
@@ -367,7 +367,7 @@ class Voting(commands.Cog):
 
         user: tuple = self.db.get_user(target.id)
         embed.add_field(name="**MiniSigma Stats:**", value="")
-        embed.add_field(name="IQ Score:", value=user[2] - user[3] + user[4])
+        embed.add_field(name=f"{POINTS_NAME}:", value=user[2] - user[3] + user[4])
         embed.add_field(name="Upvotes:", value=user[2])
         embed.add_field(name="Downvotes:", value=user[3])
         embed.add_field(name="Biggest Fan:", value=self.db.fans(target.id, 1))
