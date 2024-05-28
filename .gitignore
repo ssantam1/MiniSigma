@@ -10,11 +10,14 @@ __pycache__/
 # Ignore the virtual environment directory
 venv/
 
-# Ignore the database file (if it's a file-based database)
+# Ignore the database file
 *.db
 
 # Ignore xkcd json
 xkcd.json
+
+# Ignore token.json
+token.json
 
 # Ignore vscode stuff
 .vscode/

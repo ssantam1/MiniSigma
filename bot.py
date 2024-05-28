@@ -5,6 +5,7 @@ from utility.database import Database
 from utility.config import *
 import os
 import colorama
+import json
 
 colorama.init()
 logger = logging.getLogger("client")
@@ -36,5 +37,7 @@ if __name__ == '__main__':
     root_logger = logging.getLogger()
     root_logger.addHandler(file_handler)
 
-    token = os.getenv("DISCORD_BOT_TOKEN")
+    with open("token.json", "r") as f:
+        token = json.load(f)["token"]
+
     MiniSigma().run(token=token, log_handler=logging.StreamHandler(), log_formatter=discord.utils._ColourFormatter(), root_logger=True)
