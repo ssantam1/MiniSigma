@@ -160,7 +160,7 @@ class Voting(commands.Cog):
 
     # ==================== Commands ====================
     
-    @app_commands.command(name=POINTS_NAME, description=f"Displays current {POINTS_NAME} score")
+    @app_commands.command(name=POINTS_NAME.lower(), description=f"Displays current {POINTS_NAME} score")
     @app_commands.describe(target=f"The server member you would like to check the {POINTS_NAME} of")
     async def iq(self, interaction: discord.Interaction, target: discord.Member = None):
         '''Displays the user's current IQ score'''
