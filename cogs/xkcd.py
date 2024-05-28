@@ -11,6 +11,8 @@ from utility.config import *
 
 logger = logging.getLogger("client.xkcd")
 
+AVATAR_URL = None
+
 async def get_xkcd_embed(session: aiohttp.ClientSession, comic_num: int = None) -> discord.Embed:
     ''' Returns embed with XKCD comic. comic_num defaults to latest comic. '''
     comic_num: str = "" if comic_num is None else str(comic_num) + '/'
@@ -19,13 +21,13 @@ async def get_xkcd_embed(session: aiohttp.ClientSession, comic_num: int = None) 
     try:
         async with session.get(f"https://xkcd.com/{comic_num}info.0.json") as response:
             data = await response.json()
-        embed.set_author(name=f"{data['num']} - {data['safe_title']}", icon_url=BOT_AVATAR_URL)
+        embed.set_author(name=f"{data['num']} - {data['safe_title']}", icon_url=AVATAR_URL)
         embed.set_image(url=data['img'])
         embed.set_footer(text=data['alt'])
 
     except Exception as error:
         logger.warning(f"Unable to fetch xkcd embed: {error}")
-        embed.set_author(name=f"XKCD Fetch Error", icon_url=BOT_AVATAR_URL)
+        embed.set_author(name=f"XKCD Fetch Error", icon_url=AVATAR_URL)
         embed.set_image(url="")
         embed.set_footer(text="Tell @theothermaurice to fix this __NOW__!")
 
@@ -176,4 +178,6 @@ class XKCD(commands.Cog):
         self.check_for_new_comic.cancel()
 
 async def setup(client: MiniSigma):
+    global AVATAR_URL
+    AVATAR_URL = client.user.display_avatar.url
     await client.add_cog(XKCD(client))
