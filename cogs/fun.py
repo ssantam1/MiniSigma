@@ -19,25 +19,6 @@ class Fun(commands.Cog):
     async def on_message(self, msg: discord.Message):
         msg_text = msg.clean_content.lower()
 
-        if "piccolo" in msg_text:
-            fpath = os.path.join(self.resources_dir, "piccolo.mp4")
-            with open(fpath, "rb") as file:
-                piccolo = discord.File(file, "piccolo.mp4")
-
-            await msg.channel.send(file = piccolo)
-
-        if "kys" in msg_text:
-            response = "https://media.tenor.com/67LIumILNRsAAAAd/ltg-low-tier-god.gif"
-            await msg.channel.send(response)
-
-        if self.client.user.mentioned_in(msg) and not msg.mention_everyone and not msg.author.bot:
-            fpath = os.path.join(self.resources_dir, "quotes.json")
-            with open(fpath, "r") as file:
-                quotes = json.load(file)
-                selected_quote = random.choice(quotes)
-        
-            await msg.reply(selected_quote)
-
         # Brazilian time unit conversion (inside joke)
         if msg.author.id == 249951720598142977:
             if "a bit" in msg_text:
