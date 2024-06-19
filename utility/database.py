@@ -314,6 +314,9 @@ class Database:
         return (won, -lost)
 
     # ========== GACHA ==========
+    # FEATURE IS A WORK IN PROGRESS, NOT FINAL IMPLEMENTATION
+    # Will eventually allow users to randomly 'pull' cards from a pool of currently tracked users
+    # ===========================
 
     def create_gacha(self):
         '''Creates the Gacha tables'''
