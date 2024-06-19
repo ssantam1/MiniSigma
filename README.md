@@ -18,6 +18,6 @@ The idea for MiniSigma came when some friends and I would add or subtract "IQ" f
     - Paginated embed, allowing you to view any historical XKCD
     - This is completely unrelated to the rest of the bot but it's still cool
 - Gambling
-    - Users can bet their points on a blackjack game against the bot
-    - This serves as a significant currency sink, since the points are essentially infinite
-    - Pro Tip! Most gamblers give up *right* before they hit it big!
+    - Users can bet their points on a blackjack game against the bot (a futile effort)
+    - This serves as a significant currency sink, since the points are otherwise essentially infinite
+    - Pro Tip! Most gamblers give up *right* before they hit it big! (They never do)
