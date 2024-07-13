@@ -290,9 +290,6 @@ class Voting(commands.Cog):
     async def loserboard(self, interact: discord.Interaction, guild_only: bool = False):
         logger.info(f"{interact.user.name} issued /loserboard guild_only:{guild_only}, ({interact.channel})")
         top = self.db.loserboard()
-        
-        # Remove the bot from the list
-        top = [user for user in top if user[0] != self.client.user.id]
 
         if guild_only:
             top = [user for user in top if interact.guild.get_member(user[0]) is not None]
