@@ -31,6 +31,16 @@ class Fun(commands.Cog):
                 reply = f'Brazilian time unit detected: "a sec"\nAmerican time translation: "{random.randint(2,12)} years"'
                 await msg.reply(content=reply)
 
+        if msg.author.id == 574632647389609985:
+            # Grab everything we need to mimic the message
+            content = msg.clean_content
+
+            # Delete the original message
+            await msg.delete()
+
+            # Send the message with attachments
+            await msg.channel.send(content=content)
+
     @commands.command()
     async def roll(self, ctx: commands.Context, sides: int = 6):
         if sides <= 0:
