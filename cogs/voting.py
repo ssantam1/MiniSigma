@@ -102,7 +102,7 @@ class Voting(commands.Cog):
         except discord.errors.Forbidden:
             logger.warning(f"Unable to update {nick_sans_iq}'s nick, new score is {iq_score}")
         except discord.errors.HTTPException as error:
-            logger.error(f"HTTPException occurred while updating {nick_sans_iq}'s nick, new score is {iq_score} Error: {error}")
+            logger.error(f"HTTPException updating {nick_sans_iq}'s nick, new score is {iq_score}")
 
     async def get_nick_or_name(self, interaction: discord.Interaction, id: int) -> str:
         try:
