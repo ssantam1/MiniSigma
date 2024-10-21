@@ -60,7 +60,7 @@ class BlackjackHand:
 
     def value(self) -> int:
         cards = [card for card in self.cards if not card.down]
-        total = sum(11 if card.symbol == 'A' else 10 if card.symbol in 'JQK' else int(card.value) for card in cards) # Good luck reading this one-liner lol
+        total = sum(11 if card.symbol == 'A' else 10 if card.symbol in 'JQK' else int(card.value) for card in cards)
         aces = sum(1 for card in cards if card.symbol == 'A')
         while total > 21 and aces:
             total -= 10
@@ -103,6 +103,7 @@ class BlackjackInactiveView(discord.ui.View):
 
     @discord.ui.button(label="Change bet", style=discord.ButtonStyle.secondary, emoji="💵")
     async def change_bet(self, interaction: discord.Interaction, _: discord.ui.Button):
+        # Prompts user to change self.bet and updates message with view=self
         await interaction.response.send_modal(BlackjackBetModal(self))
 
 
@@ -135,18 +136,22 @@ class BlackjackView(discord.ui.View):
         self.db = db
         self.user = user
         self.bet = bet
-        self.db.place_bet(user.id, bet, "blackjack")
-        logger.info(f"{self.user.name} -{self.bet} points on blackjack")
-
         self.deck = Deck()
         self.playerHand = BlackjackHand(self.deck)
         self.dealerHand = BlackjackHand(self.deck)
         self.dealerHand.cards[1].down = True
 
-        self.embed = discord.Embed(title=f"Stakes: {self.bet}", color=EMBED_COLOR)
-        self.embed.set_author(name="Blackjack Game", icon_url=self.user.display_avatar.url)
-        self.embed.add_field(name="Dealer's Hand:", value=f"```{self.dealerHand}```", inline=False)
-        self.embed.add_field(name="Player's Hand:", value=f"```{self.playerHand}```", inline=False)
+        self.embed = self.create_embed()
+
+        self.db.place_bet(user.id, bet, "blackjack")
+        logger.info(f"{self.user.name} -{self.bet} points on blackjack")
+
+    def create_embed(self):
+        embed = discord.Embed(title=f"Stakes: {self.bet}", color=EMBED_COLOR)
+        embed.set_author(name="Blackjack Game", icon_url=self.user.display_avatar.url)
+        embed.add_field(name="Dealer's Hand:", value=f"```{self.dealerHand}```", inline=False)
+        embed.add_field(name="Player's Hand:", value=f"```{self.playerHand}```", inline=False)
+        return embed
 
     def update_hands(self):
         self.embed.set_field_at(0, name="Dealer's Hand:", value=f"```{self.dealerHand}```", inline=False)
@@ -202,29 +207,28 @@ class BlackjackView(discord.ui.View):
         await interaction.response.edit_message(embed=self.embed, view=BlackjackInactiveView(self.db, self.user, self.bet))
         self.stop()
 
-    async def send_player_error_msg(self, interaction: discord.Interaction):
-        logger.info(f"{interaction.user.name} tried to play on another user's blackjack game")
-        await interaction.response.send_message("It's not your game! Please wait for this hand to be over!", ephemeral=True)
+    async def is_correct_user(self, interaction: discord.Interaction):
+        if interaction.user != self.user:
+            logger.info(f"{interaction.user.name} tried to play on another user's blackjack game")
+            await interaction.response.send_message("It's not your game! Please wait for this hand to be over!", ephemeral=True)
+            return False
+        return True
 
     @discord.ui.button(label="Hit", style=discord.ButtonStyle.primary, emoji="👊")
     async def hit(self, interaction: discord.Interaction, _: discord.ui.Button):
-        if interaction.user != self.user:
-            await self.send_player_error_msg(interaction)
+        if not await self.is_correct_user(interaction):
             return
-        
         self.playerHand.hit()
         if self.playerHand.is_busted():
             await self.endGame(interaction)
-            return
-        self.update_hands()
-        await self.update(interaction)
+        else:
+            self.update_hands()
+            await self.update(interaction)
 
     @discord.ui.button(label="Stand", style=discord.ButtonStyle.blurple, emoji="👋")
     async def stand(self, interaction: discord.Interaction, _: discord.ui.Button):
-        if interaction.user != self.user:
-            await self.send_player_error_msg(interaction)
+        if not await self.is_correct_user(interaction):
             return
-        
         self.dealerHand.cards[1].down = False
         while self.dealerHand.value() < 17:
             self.dealerHand.hit()
