@@ -228,7 +228,7 @@ class BlackjackView(discord.ui.View):
             self.update_hands()
             await self.update(interaction)
 
-    @discord.ui.button(label="Stand", style=discord.ButtonStyle.blurple, emoji="👋")
+    @discord.ui.button(label="Stand", style=discord.ButtonStyle.primary, emoji="👋")
     async def stand(self, interaction: discord.Interaction, _: discord.ui.Button):
         if not await self.is_correct_user(interaction):
             return
@@ -239,13 +239,16 @@ class BlackjackView(discord.ui.View):
                 break
         await self.endGame(interaction)
 
-    @discord.ui.button(label="Double Down", style=discord.ButtonStyle.green, emoji="👍")
+    @discord.ui.button(label="Double", style=discord.ButtonStyle.secondary, emoji="✌️")
     async def double_down(self, interaction: discord.Interaction, _: discord.ui.Button):
         if not await self.is_correct_user(interaction):
             return
 
         self.db.place_bet(self.user.id, self.bet, "blackjack double down")
+        logger.info(f"{self.user.name} -{self.bet} points on BJ double down")
+        
         self.bet *= 2
+        self.embed.title = f"Stakes: {self.bet}"
         self.playerHand.hit()
         self.dealerHand.cards[1].down = False
         while self.dealerHand.value() < 17:
