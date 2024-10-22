@@ -145,6 +145,8 @@ class BlackjackView(discord.ui.View):
 
         self.db.place_bet(user.id, bet, "blackjack")
         logger.info(f"{self.user.name} -{self.bet} points on blackjack")
+        
+        self.double_down.disabled = not self.db.is_valid_bet(self.user.id, self.bet)
 
     def create_embed(self):
         embed = discord.Embed(title=f"Stakes: {self.bet}", color=EMBED_COLOR)
@@ -219,6 +221,7 @@ class BlackjackView(discord.ui.View):
         if not await self.is_correct_user(interaction):
             return
         self.playerHand.hit()
+        self.double_down.disabled = True
         if self.playerHand.is_busted():
             await self.endGame(interaction)
         else:
@@ -229,6 +232,21 @@ class BlackjackView(discord.ui.View):
     async def stand(self, interaction: discord.Interaction, _: discord.ui.Button):
         if not await self.is_correct_user(interaction):
             return
+        self.dealerHand.cards[1].down = False
+        while self.dealerHand.value() < 17:
+            self.dealerHand.hit()
+            if self.dealerHand.is_busted():
+                break
+        await self.endGame(interaction)
+
+    @discord.ui.button(label="Double Down", style=discord.ButtonStyle.green, emoji="👍")
+    async def double_down(self, interaction: discord.Interaction, _: discord.ui.Button):
+        if not await self.is_correct_user(interaction):
+            return
+
+        self.db.place_bet(self.user.id, self.bet, "blackjack double down")
+        self.bet *= 2
+        self.playerHand.hit()
         self.dealerHand.cards[1].down = False
         while self.dealerHand.value() < 17:
             self.dealerHand.hit()
