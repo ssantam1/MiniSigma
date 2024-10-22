@@ -136,7 +136,7 @@ class BlackjackView(discord.ui.View):
         self.db = db
         self.user = user
         self.bet = bet
-        self.deck = Deck()
+        self.deck = Deck(size=4)
         self.playerHand = BlackjackHand(self.deck)
         self.dealerHand = BlackjackHand(self.deck)
         self.dealerHand.cards[1].down = True
