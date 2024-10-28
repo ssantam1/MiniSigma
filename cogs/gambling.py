@@ -89,9 +89,18 @@ class BlackjackInactiveView(discord.ui.View):
         self.active_user = user
         self.bet = bet
 
+    async def is_correct_user(self, interaction: discord.Interaction):
+        if interaction.user != self.user:
+            logger.info(f"{interaction.user.name} tried to play on another user's blackjack game")
+            await interaction.response.send_message("It's not your game! Please wait for this hand to be over!", ephemeral=True)
+            return False
+        return True
+
     @discord.ui.button(label="Go Again!", style=discord.ButtonStyle.secondary, emoji="🔄")
     async def start(self, interaction: discord.Interaction, _: discord.ui.Button):
-        self.active_user = interaction.user
+        if not await self.is_correct_user(interaction):
+            return
+
         if not self.db.is_valid_bet(self.active_user.id, self.bet):
             logger.info(f"{self.active_user.name} tried to bet {self.bet} points on blackjack, but had insufficient funds")
             await interaction.response.send_message(f"Invalid bet amount: {self.bet}! You need more points!", ephemeral=True)
@@ -103,6 +112,9 @@ class BlackjackInactiveView(discord.ui.View):
 
     @discord.ui.button(label="Change bet", style=discord.ButtonStyle.secondary, emoji="💵")
     async def change_bet(self, interaction: discord.Interaction, _: discord.ui.Button):
+        if not await self.is_correct_user(interaction):
+            return
+
         # Prompts user to change self.bet and updates message with view=self
         await interaction.response.send_modal(BlackjackBetModal(self))
 
@@ -127,6 +139,7 @@ class BlackjackBetModal(discord.ui.Modal):
         
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         await interaction.response.send_message(f'Oops! @theothermaurice is dumb!\nScreenshot this error and send it to him!\n`{error}`', ephemeral=True)
+
 
 
 class BlackjackView(discord.ui.View):
