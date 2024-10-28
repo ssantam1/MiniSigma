@@ -90,7 +90,7 @@ class BlackjackInactiveView(discord.ui.View):
         self.bet = bet
 
     async def is_correct_user(self, interaction: discord.Interaction):
-        if interaction.user != self.user:
+        if interaction.user != self.active_user:
             logger.info(f"{interaction.user.name} tried to play on another user's blackjack game")
             await interaction.response.send_message("It's not your game! Please wait for this hand to be over!", ephemeral=True)
             return False
