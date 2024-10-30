@@ -352,3 +352,56 @@ class Database:
         '''Lists all cards in a user's inventory'''
         self.c.execute("SELECT GachaInventory.card_id, Users.username, GachaInventory.quantity FROM GachaInventory JOIN Users ON GachaInventory.card_id = Users.id WHERE user_id = ?", (user_id,))
         return self.c.fetchall()
+    
+    # ========== STARBOARD ==========
+    def create_starboard_tables(self):
+        '''Initializes the starboard tables'''
+        # Each server can have no more than one starboard channel in which to display starred messages
+        # Each message can only be displayed in one starboard channel
+        # Required tables: StarboardChannels, StarboardMessages
+
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS StarboardChannels (
+            guild_id INTEGER PRIMARY KEY,
+            channel_id INTEGER
+        )
+        """)
+ 
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS StarboardMessages (
+            original_message_id INTEGER PRIMARY KEY,
+            starboard_message_id INTEGER,
+            starboard_channel_id INTEGER
+        )
+        """)
+
+        self.conn.commit()
+
+    def reset_starboard_tables(self):
+        '''Resets the starboard tables'''
+        self.c.execute("DROP TABLE StarboardChannels")
+        self.c.execute("DROP TABLE StarboardMessages")
+        self.conn.commit()
+        self.create_starboard_tables()
+
+    def set_starboard_channel(self, guild_id: int, channel_id: int):
+        '''Sets the starboard channel for a guild'''
+        self.c.execute("INSERT OR REPLACE INTO StarboardChannels (guild_id, channel_id) VALUES (?, ?)", (guild_id, channel_id))
+        self.conn.commit()
+
+    def get_starboard_channel(self, guild_id: int) -> int:
+        '''Gets the starboard channel for a guild'''
+        self.c.execute("SELECT channel_id FROM StarboardChannels WHERE guild_id = ?", (guild_id,))
+        result = self.c.fetchone()
+        return result[0] if result else None
+    
+    def add_starboard_message(self, original_message_id: int, starboard_message_id: int, starboard_channel_id: int):
+        '''Adds a message to the starboard'''
+        self.c.execute("INSERT INTO StarboardMessages (original_message_id, starboard_message_id, starboard_channel_id) VALUES (?, ?, ?)", (original_message_id, starboard_message_id, starboard_channel_id))
+        self.conn.commit()
+
+    def get_starboard_message(self, original_message_id: int) -> tuple[int, int]:
+        '''Gets the starboard message for a message'''
+        self.c.execute("SELECT starboard_message_id, starboard_channel_id FROM StarboardMessages WHERE original_message_id = ?", (original_message_id,))
+        return self.c.fetchone()
+    
