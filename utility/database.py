@@ -356,9 +356,6 @@ class Database:
     # ========== STARBOARD ==========
     def create_starboard_tables(self):
         '''Initializes the starboard tables'''
-        # Each server can have no more than one starboard channel in which to display starred messages
-        # Each message can only be displayed in one starboard channel
-        # Required tables: StarboardChannels, StarboardMessages
 
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS StarboardChannels (
@@ -404,4 +401,10 @@ class Database:
         '''Gets the starboard message for a message'''
         self.c.execute("SELECT starboard_message_id, starboard_channel_id FROM StarboardMessages WHERE original_message_id = ?", (original_message_id,))
         return self.c.fetchone()
+    
+    def message_is_starboarded(self, message_id: int) -> bool:
+        '''Checks if a message has been posted to the starboard'''
+        self.c.execute("SELECT * FROM StarboardMessages WHERE original_message_id = ?", (message_id,))
+        result = self.c.fetchone()
+        return result is not None
     

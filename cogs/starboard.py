@@ -38,9 +38,9 @@ class StarBoard(commands.Cog):
             if reaction.emoji == "⭐":
                 return reaction.count
     
-    async def send_starboard_message(self, target_channel:discord.TextChannel, message: discord.Message):
+    async def send_starboard_message(self, target_channel: discord.TextChannel, message: discord.Message) -> discord.Message:
         '''Displays a message in the starboard channel'''
-        await target_channel.send(
+        return await target_channel.send(
             content=f"⭐ {self.num_stars(message)} | <#{message.channel.id}>",
             embed=self.create_embed(message)
         )
@@ -65,20 +65,22 @@ class StarBoard(commands.Cog):
         if self.num_stars(message) < self.score_threshold:
             return
         
-        channel_message_tuple = self.db.get_starboard_message(message.id)
+        if self.db.message_is_starboarded(message.id):
+            starboard_message_id, starboard_channel_id = self.db.get_starboard_message(message.id)
 
-        if channel_message_tuple:
-            starboard_channel_id, starboard_message_id = channel_message_tuple
             starboard_channel = self.client.get_channel(starboard_channel_id)
             starboard_message = await starboard_channel.fetch_message(starboard_message_id)
 
+            logger.info(f"Updating starboard message '{starboard_channel.name}'...")
             await starboard_message.edit(content=f"⭐ {self.num_stars(message)} | <#{message.channel.id}>")
 
         else:
             starboard_channel_id = self.db.get_starboard_channel(channel.guild.id)
             starboard_channel = self.client.get_channel(starboard_channel_id)
 
-            await self.send_starboard_message(starboard_channel, message)
+            logger.info(f"Sending message to starboard channel '{starboard_channel.name}'...")
+            starboard_message = await self.send_starboard_message(starboard_channel, message)
+            self.db.add_starboard_message(message.id, starboard_message.id, starboard_channel.id)
 
     @app_commands.command(name="starboard", description="Set the starboard channel for the server")
     async def starboard(self, interaction: discord.Interaction):
