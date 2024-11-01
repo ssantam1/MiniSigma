@@ -28,15 +28,20 @@ class StarBoard(commands.Cog):
             name="Source",
             value=f"[Jump to message]({message.jump_url})"
         )
+        embed.set_image(
+            url=message.attachments[0].url if message.attachments else None
+        )
         embed.set_footer(
             text=f"Message ID: {message.id}"
         )
         return embed
     
-    def num_stars(self, message: discord.Message):
+    def num_stars(self, message: discord.Message) -> int:
+        '''Returns number of star reactions on a message'''
         for reaction in message.reactions:
             if reaction.emoji == "⭐":
                 return reaction.count
+        return 0
     
     async def send_starboard_message(self, target_channel: discord.TextChannel, message: discord.Message) -> discord.Message:
         '''Displays a message in the starboard channel'''
