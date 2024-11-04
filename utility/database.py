@@ -228,10 +228,10 @@ class Database:
             
         return self.c.fetchall()
     
-    def get_messageotw(self, guild_id: int) -> tuple[int, int, int, int, str, str]:
-        '''Returns highest-scoring message from the past week as a tuple (id, channel_id, guild_id author_id, content, timestamp)'''
+    def get_messageotw(self, guild_id: int) -> tuple[int, int, int]:
+        '''Returns highest-scoring message from the past week as a tuple (id, channel_id, score)'''
         self.c.execute("""
-            SELECT Messages.*, SUM(Reactions.vote_type) as votes
+            SELECT Messages.id, Messages.channel_id, SUM(Reactions.vote_type) as votes
             FROM Messages
             LEFT JOIN Reactions ON Messages.id = Reactions.message_id
             WHERE Messages.guild_id = ? AND Messages.timestamp > datetime('now', '-7 day')

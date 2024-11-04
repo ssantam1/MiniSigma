@@ -145,11 +145,45 @@ class Debug(commands.Cog):
     @commands.command()
     async def messageotw(self, ctx: commands.Context):
         '''Replies with the message of the week'''
-        motw = self.db.get_messageotw(ctx.guild.id)
-        if motw:
-            await ctx.reply(f"Message of the week: {motw}")
-        else:
-            await ctx.reply("No message of the week found")
+        message_id, channel_id, score = self.db.get_messageotw(ctx.guild.id)
+
+        channel: discord.TextChannel = self.client.get_channel(channel_id)
+        try:
+            message: discord.Message = await channel.fetch_message(message_id)
+        except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException) as e:
+            await ctx.reply("Message not found: " + str(e))
+            return
+        
+        embed = discord.Embed(
+            description=message.content,
+            color=EMBED_COLOR
+        )
+
+        embed.set_author(
+            name=message.author.display_name,
+            icon_url=message.author.display_avatar.url
+        )
+
+        embed.add_field(
+            name="Source",
+            value=f"[Jump to message]({message.jump_url})",
+            inline=False
+        )
+
+        if message.attachments:
+            attachment = message.attachments[0]
+            if attachment.content_type.startswith("image"):
+                embed.set_image(url=attachment.url)
+            else:
+                embed.add_field(
+                    name="Attachment",
+                    value=f"[{attachment.filename}]({attachment.url})",
+                    inline=False
+                )
+
+        embed.set_footer(text=str(message.id))
+
+        await ctx.reply(f"Top message of this week:\n{message.channel.mention}, Score: {score}", embed=embed)
     
     @commands.command()
     @commands.is_owner()
