@@ -11,7 +11,7 @@ class StarBoard(commands.Cog):
     def __init__(self, client: MiniSigma):
         self.client = client
         self.db = client.db
-        self.score_threshold = 1  # Maybe move this to a config file later
+        self.default_threshold = 4
         self.db.create_starboard_tables()
 
     def create_embed(self, message: discord.Message) -> discord.Embed:
@@ -67,7 +67,7 @@ class StarBoard(commands.Cog):
 
         logger.info(f"Registered star reaction on message '{channel}'")
 
-        if self.num_stars(message) < self.score_threshold:
+        if self.num_stars(message) < self.db.get_starboard_threshold(event.guild_id):
             return
         
         if self.db.message_is_starboarded(message.id):
@@ -93,15 +93,36 @@ class StarBoard(commands.Cog):
         if not interaction.guild:
             await interaction.response.send_message("This command must be used in a server.", ephemeral=True)
             return
-
+        
         channel = interaction.channel
-        content = f"Starboard channel set to {channel.mention}!\
-            \nAll future messages with more than {self.score_threshold} stars will be displayed here."
-
         self.db.set_starboard_channel(interaction.guild_id, channel.id)
+
+        content = f"Starboard channel set to {channel.mention}!\
+            \nAll future messages with more than {self.db.get_starboard_threshold(interaction.guild_id)} stars will be displayed here."
+
         await interaction.response.send_message(content=content)
 
         logger.info(f"Starboard channel set to {channel.name} for server {interaction.guild.name}")
+
+    @commands.command()
+    async def starboard_threshold(self, ctx: commands.Context, threshold: int):
+        '''Set the starboard threshold for the server'''
+        if not ctx.guild:
+            await ctx.send("This command must be used in a server.")
+            return
+
+        if threshold < 1:
+            await ctx.send("Threshold must be at least 1.")
+            return
+
+        if not self.is_starboard_server(ctx.guild.id):
+            await ctx.send("You must set a starboard channel before setting a threshold.")
+            return
+
+        self.db.set_starboard_threshold(ctx.guild.id, threshold)
+        await ctx.send(f"Starboard threshold set to {threshold}!")
+
+        logger.info(f"Starboard threshold set to {threshold} for server {ctx.guild.name}")
 
     @commands.command()
     @commands.is_owner()

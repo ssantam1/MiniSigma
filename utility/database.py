@@ -360,7 +360,8 @@ class Database:
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS StarboardChannels (
             guild_id INTEGER PRIMARY KEY,
-            channel_id INTEGER
+            channel_id INTEGER,
+            threshold INTEGER DEFAULT 4
         )
         """)
  
@@ -392,6 +393,17 @@ class Database:
         result = self.c.fetchone()
         return result[0] if result else None
     
+    def set_starboard_threshold(self, guild_id: int, threshold: int):
+        '''Sets the starboard threshold for a guild'''
+        self.c.execute("UPDATE StarboardChannels SET threshold = ? WHERE guild_id = ?", (threshold, guild_id))
+        self.conn.commit()
+
+    def get_starboard_threshold(self, guild_id: int) -> int:
+        '''Gets the starboard threshold for a guild'''
+        self.c.execute("SELECT threshold FROM StarboardChannels WHERE guild_id = ?", (guild_id,))
+        result = self.c.fetchone()
+        return result[0] if result else None
+    
     def add_starboard_message(self, original_message_id: int, starboard_message_id: int, starboard_channel_id: int):
         '''Adds a message to the starboard'''
         self.c.execute("INSERT INTO StarboardMessages (original_message_id, starboard_message_id, starboard_channel_id) VALUES (?, ?, ?)", (original_message_id, starboard_message_id, starboard_channel_id))
@@ -407,4 +419,3 @@ class Database:
         self.c.execute("SELECT * FROM StarboardMessages WHERE original_message_id = ?", (message_id,))
         result = self.c.fetchone()
         return result is not None
-    
