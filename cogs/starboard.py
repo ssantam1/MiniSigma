@@ -72,14 +72,20 @@ class StarBoard(commands.Cog):
             self.db.add_starboard_message(message.id, starboard_message.id, starboard_channel.id)
 
     @app_commands.command(name="starboard", description="Set the starboard channel for the server")
-    async def starboard(self, interaction: discord.Interaction):
-        '''Set the starboard channel for the server'''
+    @app_commands.describe(threshold="The number of stars required to display a message on the starboard")
+    async def starboard(self, interaction: discord.Interaction, threshold: int):
+        '''Set the starboard channel and star threshold for the server'''
         if not interaction.guild:
             await interaction.response.send_message("This command must be used in a server.", ephemeral=True)
             return
         
+        if threshold < 1:
+            await interaction.response.send_message("Threshold must be at least 1.", ephemeral=True)
+            return
+        
         channel = interaction.channel
         self.db.set_starboard_channel(interaction.guild_id, channel.id)
+        self.db.set_starboard_threshold(interaction.guild.id, threshold)
 
         content = f"Starboard channel set to {channel.mention}!\
             \nAll future messages with more than {self.db.get_starboard_threshold(interaction.guild_id)} stars will be displayed here."
