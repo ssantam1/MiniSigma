@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord import app_commands
 
 from bot import MiniSigma
+from utility.utils import create_message_embed
 
 logger = logging.getLogger("client.StarBoard")
 
@@ -16,24 +17,7 @@ class StarBoard(commands.Cog):
 
     def create_embed(self, message: discord.Message) -> discord.Embed:
         '''Creates an embed for displaying a message on the starboard'''
-        embed = discord.Embed(
-            description=message.content,
-            color=discord.Color.gold()
-        )
-        embed.set_author(
-            name=message.author.display_name,
-            icon_url=message.author.display_avatar.url
-        )
-        embed.add_field(
-            name="Source",
-            value=f"[Jump to message]({message.jump_url})"
-        )
-        embed.set_image(
-            url=message.attachments[0].url if message.attachments else None
-        )
-        embed.set_footer(
-            text=f"Message ID: {message.id}"
-        )
+        embed = create_message_embed(message, discord.Color.gold())
         return embed
     
     def num_stars(self, message: discord.Message) -> int:

@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from bot import MiniSigma
+from utility.utils import create_message_embed
 import subprocess
 import sys
 import os
@@ -154,34 +155,7 @@ class Debug(commands.Cog):
             await ctx.reply("Message not found: " + str(e))
             return
         
-        embed = discord.Embed(
-            description=message.content,
-            color=EMBED_COLOR
-        )
-
-        embed.set_author(
-            name=message.author.display_name,
-            icon_url=message.author.display_avatar.url
-        )
-
-        embed.add_field(
-            name="Source",
-            value=f"[Jump to message]({message.jump_url})",
-            inline=False
-        )
-
-        if message.attachments:
-            attachment = message.attachments[0]
-            if attachment.content_type.startswith("image"):
-                embed.set_image(url=attachment.url)
-            else:
-                embed.add_field(
-                    name="Attachment",
-                    value=f"[{attachment.filename}]({attachment.url})",
-                    inline=False
-                )
-
-        embed.set_footer(text=str(message.id))
+        embed = create_message_embed(message, EMBED_COLOR)
 
         await ctx.reply(f"Top message of this week:\n{message.channel.mention}, Score: {score}", embed=embed)
     
