@@ -219,8 +219,8 @@ class Database:
         
         return self.c.fetchall()
     
-    def top_messages(self, guild_id: int = None) -> list[tuple[str, int, int, int, int]]:
-        '''Returns the top 5 messages as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(vote_type))'''
+    def top_messages(self, guild_id: int = None) -> list[tuple[str, int, int, int, int, str]]:
+        '''Returns the top 5 messages as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(vote_type), content)'''
         if guild_id is None:
             self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type), Messages.content FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC")
         else:
@@ -254,6 +254,22 @@ class Database:
         '''Returns a message from the database as a tuple (id, channel_id, guild_id, author_id, content, timestamp)'''
         self.c.execute("SELECT * FROM Messages WHERE id = ?", (id,))
         return self.c.fetchone()
+
+    def get_controversial(self, guild_id: int) -> list[tuple[int, int, int, int, int, int, str, float]]:
+        '''Returns the most controversial messages in a guild as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(positive votes), SUM(negative votes), content, vote_ratio_diff)'''
+        self.c.execute("""
+            SELECT Messages.author_id, Messages.id, Messages.channel_id, Messages.guild_id, 
+                SUM(CASE WHEN Reactions.vote_type > 0 THEN 1 ELSE 0 END) AS positive_votes, 
+                SUM(CASE WHEN Reactions.vote_type < 0 THEN 1 ELSE 0 END) AS negative_votes,
+                Messages.content,
+                ABS(CAST(SUM(CASE WHEN Reactions.vote_type > 0 THEN 1 ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN Reactions.vote_type < 0 THEN 1 ELSE 0 END), 0) - 1) AS vote_ratio_diff
+            FROM Messages
+            LEFT JOIN Reactions ON Messages.id = Reactions.message_id
+            WHERE Messages.guild_id = ? AND vote_ratio_diff IS NOT NULL
+            GROUP BY Messages.id
+            ORDER BY vote_ratio_diff ASC, positive_votes DESC, negative_votes DESC
+        """, (guild_id,))
+        return self.c.fetchall()
     
     def reset_for_scan(self):
         '''Resets the database for a new scan'''

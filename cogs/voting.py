@@ -327,6 +327,25 @@ class Voting(commands.Cog):
         embed.add_field(name="Score", value="\n".join(scores), inline=True)
         await interact.response.send_message(embed=embed)
 
+    @app_commands.command(name="controversial", description="Displays the server's most controversial messages")
+    async def controversial(self, interaction: discord.Interaction):
+        logger.info(f"{interaction.user.name} issued /controversial, ({interaction.channel})")
+        top = self.db.get_controversial(interaction.guild.id)
+
+        embed = discord.Embed(color=EMBED_COLOR)
+        embed.set_author(name=f"{interaction.guild.name} Controversial Messages", icon_url=interaction.guild.icon.url)
+
+        data = list()
+        for (author_id, m_id, c_id, g_id, positive, negative, content, ratio) in top:
+            message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
+            preview = content[:100] + "..." if len(content) > 100 else content
+            field_name = f"Ratio: {positive}/{negative} ({ratio:.2f})"
+            field_value = f'"{preview}"\n -<@{author_id}> [Jump to message]({message_url})'
+            data.append(tuple([field_name, field_value]))
+
+        view = ListPaginator(embed, data)
+        await view.send(interaction)
+
     @commands.command()
     async def manual_save(self, ctx: commands.Context):
         tasklist = []
