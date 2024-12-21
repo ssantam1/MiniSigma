@@ -409,21 +409,32 @@ class Database:
         self.conn.commit()
         self.create_starboard_tables()
 
-    def set_starboard_channel(self, guild_id: int, channel_id: int):
+    def set_starboard_channel(self, guild_id: int, channel_id: int, threshold: int):
         '''Sets the starboard channel for a guild'''
-        self.c.execute("INSERT OR REPLACE INTO StarboardChannels (guild_id, channel_id) VALUES (?, ?)", (guild_id, channel_id))
+        self.c.execute(
+            """
+            INSERT OR REPLACE INTO StarboardChannels (
+                guild_id,
+                channel_id,
+                threshold
+            ) VALUES (?, ?, ?)
+            """,
+            (guild_id, channel_id, threshold)
+        )
         self.conn.commit()
 
     def get_starboard_channel(self, guild_id: int) -> int:
         '''Gets the starboard channel for a guild'''
-        self.c.execute("SELECT channel_id FROM StarboardChannels WHERE guild_id = ?", (guild_id,))
+        self.c.execute(
+            """
+            SELECT channel_id
+            FROM StarboardChannels
+            WHERE guild_id = ?
+            """,
+            (guild_id,)
+        )
         result = self.c.fetchone()
         return result[0] if result else None
-    
-    def set_starboard_threshold(self, guild_id: int, threshold: int):
-        '''Sets the starboard threshold for a guild'''
-        self.c.execute("UPDATE StarboardChannels SET threshold = ? WHERE guild_id = ?", (threshold, guild_id))
-        self.conn.commit()
 
     def get_starboard_threshold(self, guild_id: int) -> int:
         '''Gets the starboard threshold for a guild'''

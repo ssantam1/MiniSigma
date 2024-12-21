@@ -85,8 +85,7 @@ class StarBoard(commands.Cog):
             return
         
         channel = interaction.channel
-        self.db.set_starboard_channel(interaction.guild_id, channel.id)
-        self.db.set_starboard_threshold(interaction.guild.id, threshold)
+        self.db.set_starboard_channel(interaction.guild_id, channel.id, threshold)
 
         content = f"Starboard channel set to {channel.mention}!\
             \nAll future messages with more than {threshold} stars will be displayed here."
