@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+from datetime import timedelta
 from discord import Message
 
 class Database:
@@ -470,10 +471,19 @@ class Database:
         )
         """)
 
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS LotteryCooldowns (
+            user_id INTEGER PRIMARY KEY,
+            last_played TEXT NOT NULL
+        )
+        """)
+
         self.conn.commit()
 
     def give_lottery_reward(self, user_id: int, reward: int):
         '''Gives a user a lottery reward'''
+        
+        # Log the reward in LotteryTickets table
         self.c.execute("INSERT OR REPLACE INTO LotteryTickets (user_id, ticket_reward) VALUES (?, ?)", (user_id, reward))
 
         # Modify add reward to user's offset in Users table
@@ -481,4 +491,19 @@ class Database:
         offset = self.c.fetchone()[0]
         self.c.execute("UPDATE Users SET offset = ? WHERE id = ?", (offset + reward, user_id))
 
+        # Log the time the user last played the lottery
+        self.c.execute("INSERT OR REPLACE INTO LotteryCooldowns (user_id, last_played) VALUES (?, ?)", (user_id, datetime.now().isoformat()))
+
         self.conn.commit()
+
+    def get_lottery_cooldown(self, user_id: int) -> timedelta:
+        '''Returns the time since the user last played the lottery'''
+        self.c.execute("SELECT last_played FROM LotteryCooldowns WHERE user_id = ?", (user_id,))
+        result = self.c.fetchone()
+
+        if result is None:
+            return None
+        
+        last_played = datetime.fromisoformat(result[0])
+        time_diff = datetime.now() - last_played
+        return time_diff

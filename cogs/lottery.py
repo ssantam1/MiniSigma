@@ -1,4 +1,5 @@
 import random
+from datetime import datetime, timedelta
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -43,6 +44,7 @@ class Ticket(discord.ui.View):
     async def scratch(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not interaction.user.id == self.user.id:
             await interaction.response.send_message("You can't scratch someone else's ticket!", ephemeral=True)
+            return
 
         button.label = 'Used'
         button.style = discord.ButtonStyle.gray
@@ -68,10 +70,29 @@ class Lottery(commands.Cog):
     def create_embed(self) -> discord.Embed:
         '''Creates an embed with three blank spots to be "scratched" later'''
         return discord.Embed(title="Scratch Ticket", description=":grey_question: Scratch to claim!", color=EMBED_COLOR)
+    
+    def get_cooldown(self, user_id: int) -> int:
+        '''Returns time remaining until the user can play the lottery again, 0 if they can play now.'''
+        time_since_last_played: timedelta = self.db.get_lottery_cooldown(user_id) 
+
+        if time_since_last_played is None:
+            return 0
+
+        cooldown_period = timedelta(days=1)
+        time_remaining = cooldown_period - time_since_last_played
+
+        if time_remaining.total_seconds() > 0:
+            return int(time_remaining.total_seconds())
+        return 0
 
     @app_commands.command(name="daily", description="Redeem your daily reward!")
     async def daily(self, interaction: discord.Interaction):
-        #TODO: Check cooldown
+        '''Allows the user to play the lottery once per day.'''
+        cooldown = self.get_cooldown(interaction.user.id)
+        if cooldown > 0:
+           await interaction.response.send_message(f"Please wait {cooldown} seconds before playing again!", ephemeral=True)
+           return
+
         embed = self.create_embed()
         view = Ticket(interaction.user, self.db)
         await interaction.response.send_message(embed=embed, view=view)
