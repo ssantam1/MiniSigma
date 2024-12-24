@@ -457,3 +457,28 @@ class Database:
         self.c.execute("SELECT * FROM StarboardMessages WHERE original_message_id = ?", (message_id,))
         result = self.c.fetchone()
         return result is not None
+
+
+    # ========== LOTTERY ==========
+    def create_lottery_tables(self):
+        '''Initializes the lottery tables'''
+
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS LotteryTickets (
+            user_id INTEGER PRIMARY KEY,
+            ticket_reward INTEGER
+        )
+        """)
+
+        self.conn.commit()
+
+    def give_lottery_reward(self, user_id: int, reward: int):
+        '''Gives a user a lottery reward'''
+        self.c.execute("INSERT OR REPLACE INTO LotteryTickets (user_id, ticket_reward) VALUES (?, ?)", (user_id, reward))
+
+        # Modify add reward to user's offset in Users table
+        self.c.execute("SELECT offset FROM Users WHERE id = ?", (user_id,))
+        offset = self.c.fetchone()[0]
+        self.c.execute("UPDATE Users SET offset = ? WHERE id = ?", (offset + reward, user_id))
+
+        self.conn.commit()
