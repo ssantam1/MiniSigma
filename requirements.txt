@@ -1,5 +1,5 @@
-discord
-aiohttp
-tzdata
-Pillow
-colorama
+discord>=2.3.2
+aiohttp>=3.10.5
+tzdata>=2024.1
+pillow>=10.4.0
+colorama>=0.4.6
