@@ -179,14 +179,9 @@ class Database:
         self.c.execute("SELECT upvote, downvote FROM Emojis WHERE guild_id = ?", (id,))
         return self.c.fetchone() or self.add_guild(id)
     
-    def set_upvote(self, id: int, emoji: str):
+    def set_emojis(self, id: int, upvote: str, downvote: str):
         self.add_guild(id)
-        self.c.execute("UPDATE Emojis SET upvote = ? WHERE guild_id = ?", (emoji, id))
-        self.conn.commit()
-
-    def set_downvote(self, id: int, emoji: str):
-        self.add_guild(id)
-        self.c.execute("UPDATE Emojis SET downvote = ? WHERE guild_id = ?", (emoji, id))
+        self.c.execute("UPDATE Emojis SET upvote = ?, downvote = ? WHERE guild_id = ?", (upvote, downvote, id))
         self.conn.commit()
 
     def list_emojis(self) -> list[tuple[int, str, str]]:

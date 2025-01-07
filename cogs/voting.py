@@ -387,8 +387,7 @@ class Voting(commands.Cog):
     @app_commands.command(name="set_emojis", description="Changes the upvote and downvote emojis for the guild")
     async def set_emojis(self, interaction: discord.Interaction, upvote_emoji: str, downvote_emoji: str):
         '''Changes the upvote and downvote emojis for the guild'''
-        self.db.set_upvote(interaction.guild_id, upvote_emoji)
-        self.db.set_downvote(interaction.guild_id, downvote_emoji)
+        self.db.set_emojis(interaction.guild_id, upvote_emoji, downvote_emoji)
 
         await interaction.response.send_message(f"Guild emojis set: Upvote - {upvote_emoji}, Downvote - {downvote_emoji}")
         logger.info(f"({interaction.guild.name}) Guild emojis changed: Upvote - {upvote_emoji}, Downvote - {downvote_emoji} by {interaction.user.name}")
