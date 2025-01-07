@@ -7,6 +7,7 @@ from bot import MiniSigma
 from utility.config import EMBED_COLOR
 from utility.database import Database
 from cogs.voting import Voting
+from utility.utils import nick_update
 
 class Ticket(discord.ui.View):
     '''Represents a scratch ticket.'''
@@ -56,7 +57,7 @@ class Ticket(discord.ui.View):
         result_text, reward_text = self.get_lottery_result()
         embed.add_field(name=result_text, value=reward_text)
 
-        await Voting.nick_update(self.user, self.db.get_iq(self.user.id))
+        await nick_update(self.user, self.db.get_iq(self.user.id))
 
         await interaction.message.edit(embed=embed, view=self)
         await interaction.response.defer()

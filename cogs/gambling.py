@@ -8,6 +8,7 @@ from datetime import datetime
 from cogs.voting import Voting
 import logging
 import random
+from utility.utils import nick_update
 
 logger = logging.getLogger("client.gambling")
 
@@ -217,7 +218,7 @@ class BlackjackView(discord.ui.View):
             self.embed.set_footer(text=f"Loss: {self.bet} points")
             self.embed.color = discord.Color.red()
 
-        await Voting.nick_update(self.user, self.db.get_iq(self.user.id))
+        await nick_update(self.user, self.db.get_iq(self.user.id))
         self.embed.add_field(name="Result:", value=win_str, inline=False)
         await interaction.response.edit_message(embed=self.embed, view=BlackjackInactiveView(self.db, self.user, self.bet))
         self.stop()

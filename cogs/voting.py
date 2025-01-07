@@ -9,6 +9,7 @@ import utility.database as DB
 from utility.config import *
 from bot import MiniSigma
 from datetime import datetime
+from utility.utils import nick_update
 
 logger = logging.getLogger("client")
 
@@ -87,23 +88,6 @@ class Voting(commands.Cog):
         self.client = client
         self.db: DB.Database = client.db
 
-    @staticmethod
-    async def nick_update(member: discord.Member, iq_score: int) -> None:
-        '''Update a member's nick with a new score'''
-        try:
-            current_nick = member.nick or member.name
-        except AttributeError:
-            current_nick = member.name
-            
-        nick_sans_iq: str = re.sub(r"\s*\([^)]*\)$", "", current_nick)
-        new_nick = nick_sans_iq + (f" ({iq_score} {POINTS_NAME})")
-        try:
-            await member.edit(nick=new_nick)
-        except discord.errors.Forbidden:
-            logger.warning(f"Unable to update {nick_sans_iq}'s nick, new score is {iq_score}")
-        except discord.errors.HTTPException as error:
-            logger.error(f"HTTPException updating {nick_sans_iq}'s nick, new score is {iq_score}")
-
     async def get_nick_or_name(self, interaction: discord.Interaction, id: int) -> str:
         try:
             member = interaction.guild.get_member(id) or await interaction.guild.fetch_member(id)
@@ -147,7 +131,7 @@ class Voting(commands.Cog):
         self.db.update_username(target.id, target.name)
         self.db.update_username(voter.id, voter.name)
 
-        await self.nick_update(target, new_user_score)
+        await nick_update(target, new_user_score)
         logger.info(f"{target} {event.event_type[9:]} {vote_value} from {voter} ({message.channel.name}), Score: {new_user_score}")
 
     @commands.Cog.listener()
@@ -356,7 +340,7 @@ class Voting(commands.Cog):
                 member = ctx.guild.get_member(user[0])
                 iq = user[2] - user[3] + user[4]
                 if member is not None:
-                    tasklist.append(self.nick_update(member, iq))
+                    tasklist.append(nick_update(member, iq))
             except:
                 print(f"Couldn't fetch {user(1)}'s member object, skipping...")
         
