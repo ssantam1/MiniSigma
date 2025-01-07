@@ -6,7 +6,6 @@ from discord import app_commands
 from bot import MiniSigma
 from utility.config import EMBED_COLOR
 from utility.database import Database
-from cogs.voting import Voting
 from utility.utils import nick_update
 
 class Ticket(discord.ui.View):

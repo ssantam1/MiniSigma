@@ -5,7 +5,6 @@ from bot import MiniSigma
 import utility.database as DB
 from utility.config import *
 from datetime import datetime
-from cogs.voting import Voting
 import logging
 import random
 from utility.utils import nick_update
