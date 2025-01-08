@@ -31,20 +31,6 @@ class Fun(commands.Cog):
                 reply = f'Brazilian time unit detected: "a sec"\nAmerican time translation: "{random.randint(2,12)} years"'
                 await msg.reply(content=reply)
 
-        # Mimic messages from the a specific user
-        cursed_user_id = 574632647389609985
-        asylum_channel_id = 1272246599258738733
-        if msg.author.id == cursed_user_id:
-            # Grab everything we need to mimic the message
-            content = msg.clean_content
-
-            # Delete the original message
-            await msg.delete()
-
-            # Send the message in the asylum channel
-            channel = self.client.get_channel(asylum_channel_id)
-            await channel.send(content)
-
     @commands.command()
     async def roll(self, ctx: commands.Context, sides: int = 6):
         if sides <= 0:
