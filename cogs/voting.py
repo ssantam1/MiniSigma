@@ -9,7 +9,7 @@ import utility.database as DB
 from utility.config import *
 from bot import MiniSigma
 from datetime import datetime
-from utility.utils import nick_update
+from utility.utils import nick_update, strip_score
 
 logger = logging.getLogger("client")
 
@@ -151,7 +151,7 @@ class Voting(commands.Cog):
         target = interaction.user if target == None else target
         logger.info(f"{interaction.user.name} issued /iq {target}, ({interaction.channel})")
         iq = self.db.get_iq(target.id)
-        name = re.sub(r"\s*\([^)]*\)$", "", target.display_name)
+        name = strip_score(target.nick or target.name)
         await interaction.response.send_message(f"{name}'s {POINTS_NAME}: {iq}")
 
     async def user_sentiment(self, interaction: discord.Interaction, target: discord.Member) -> discord.Embed:

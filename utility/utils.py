@@ -36,6 +36,17 @@ def create_message_embed(message: discord.Message, color) -> discord.Embed:
 
     return embed
 
+def strip_score(nick: str) -> str:
+    """Removes the trailing score and parentheses from a nickname string.
+
+    Args:
+        nick: The nickname string that may contain a trailing score in parentheses
+
+    Returns:
+        The nickname with any trailing parenthetical score removed
+    """
+    return re.sub(r"\s*\([^)]*\)$", "", nick)
+
 async def nick_update(member: discord.Member, score: int) -> None:
     '''Updates the member's nickname with a new score'''
     try:
