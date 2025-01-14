@@ -5,8 +5,18 @@ from utility.config import POINTS_NAME
 
 logger = logging.getLogger("client.utils")
 
-def create_message_embed(message: discord.Message, color) -> discord.Embed:
-    '''Returns an embed for displaying another user's message'''
+def create_message_embed(message: discord.Message, color: discord.Color) -> discord.Embed:
+    """Creates a Discord embed to display an existing message object.
+
+    The embed includes the message content, author, source link, and attachment if present.
+
+    Args:
+        message: The message to create an embed from
+        color: The color to use for the embed
+
+    Returns:
+        A Discord embed containing the formatted message
+    """
     embed = discord.Embed(
         description=message.content,
         color=color
@@ -48,18 +58,38 @@ def strip_score(nick: str) -> str:
     return re.sub(r"\s*\([^)]*\)$", "", nick)
 
 async def nick_update(member: discord.Member, score: int) -> None:
-    '''Updates the member's nickname with a new score'''
+    """Updates a member's nickname with their new score.
+
+    If the member's nickname already contains a score, it is replaced.
+    If the member's nickname does not contain a score, one is appended.
+    If the member's nickname is too long, the score is not appended.
+
+    Args:
+        member: The member whose nickname should be updated
+        score: The new score to append to the member's nickname
+
+    Raises:
+        discord.errors.Forbidden: When bot lacks permission to change nicknames
+        discord.errors.HTTPException: When the new nickname is too long
+    """
     try:
-        current_nick = member.nick or member.name
+        current_nick: str = member.nick or member.name
     except AttributeError:
         current_nick = member.name
         
-    nick_sans_iq: str = re.sub(r"\s*\([^)]*\)$", "", current_nick)
-    new_nick = nick_sans_iq + (f" ({score} {POINTS_NAME})")
+    nick_sans_iq: str = strip_score(current_nick)
+    new_nick: str = f"{nick_sans_iq} ({score} {POINTS_NAME})"
 
     try:
         await member.edit(nick=new_nick)
+        logger.info(f"Successfully updated {nick_sans_iq}'s nickname to: {new_nick}")
     except discord.errors.Forbidden:
-        logger.warning(f"Unable to update {nick_sans_iq}'s nick, new score is {score}")
+        logger.warning(
+            f"Permission denied: Unable to update {nick_sans_iq}'s nickname. "
+            f"New score is {score}"
+        )
     except discord.errors.HTTPException:
-        logger.error(f"HTTPException updating {nick_sans_iq}'s nick, new score is {score}")
+        logger.warning(
+            f"Nickname too long: Failed to update {nick_sans_iq}'s nickname. "
+            f"New score is {score}"
+        )
