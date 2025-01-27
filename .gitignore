@@ -16,8 +16,8 @@ venv/
 # Ignore xkcd json
 xkcd.json
 
-# Ignore token.json
-token.json
+# Ignore non-example config.py
+config.py
 
 # Ignore vscode stuff
 .vscode/

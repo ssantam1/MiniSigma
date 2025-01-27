@@ -1,7 +1,7 @@
 import re
 import logging
 import discord
-from utility.config import POINTS_NAME
+from config import POINTS_NAME
 
 logger = logging.getLogger("client.utils")
 

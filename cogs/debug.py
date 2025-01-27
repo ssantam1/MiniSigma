@@ -11,7 +11,7 @@ import datetime
 import logging
 from zoneinfo import ZoneInfo
 import utility.database as DB
-from utility.config import *
+from config import *
 import csv
 
 logger = logging.getLogger("client.debug")

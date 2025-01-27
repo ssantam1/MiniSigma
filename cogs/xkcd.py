@@ -7,7 +7,7 @@ import logging
 import json
 import aiohttp
 from typing import Literal
-from utility.config import *
+from config import *
 
 logger = logging.getLogger("client.xkcd")
 

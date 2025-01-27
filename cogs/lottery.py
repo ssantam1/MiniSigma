@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from bot import MiniSigma
-from utility.config import EMBED_COLOR
+from config import EMBED_COLOR
 from utility.database import Database
 from utility.utils import nick_update
 

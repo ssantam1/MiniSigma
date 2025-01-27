@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import utility.database as DB
-from utility.config import *
+from config import *
 from bot import MiniSigma
 from datetime import datetime
 from utility.utils import nick_update, strip_score

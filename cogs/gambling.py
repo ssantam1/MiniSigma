@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 from bot import MiniSigma
 import utility.database as DB
-from utility.config import *
+from config import *
 from datetime import datetime
 import logging
 import random
