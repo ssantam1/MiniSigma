@@ -15,7 +15,7 @@ class Ticket(discord.ui.View):
         self.user = user
         self.db = db
 
-    def get_lottery_result(self):
+    def get_lottery_result(self) -> tuple[str, str]:
         '''Randomly selects a result for a lottery ticket and returns the text and reward to display.'''
 
         # Possible outcomes are emojis with a message to display
@@ -25,20 +25,21 @@ class Ticket(discord.ui.View):
         # ':coin: Normal!'          - 10 points  - 50% chance
         # ':poop: Unlucky!'         - 5 points   - 5% chance
 
-        result_number = random.choices([0, 1, 2, 3, 4], weights=[1, 10, 34, 50, 5])[0]
+        results = [
+            (":gem: Jackpot!", "You won 500 points!", 500, 1),
+            (":moneybag: Super Lucky!", "You won 100 points!", 100, 10),
+            (":dollar: Lucky!", "You won 50 points!", 50, 34),
+            (":coin: Normal!", "You won 10 points!", 10, 50),
+            (":poop: Unlucky!", "You won 5 points!", 5, 5)
+        ]
 
-        rewards = [500, 100, 50, 10, 5]
-        reward = rewards[result_number]
+        weights = [result[3] for result in results]
+        result = random.choices(results, weights=weights, k=1)[0]
+
+        result_text, reward_text, reward, _ = result        
         self.db.give_lottery_reward(self.user.id, reward)
 
-        results = [
-            (":gem: Jackpot!", "You won 500 points!"),
-            (":moneybag: Super Lucky!", "You won 100 points!"),
-            (":dollar: Lucky!", "You won 50 points!"),
-            (":coin: Normal!", "You won 10 points!"),
-            (":poop: Unlucky!", "You won 5 points!")
-        ]
-        return results[result_number]
+        return result_text, reward_text
 
     @discord.ui.button(label='Scratch!', style=discord.ButtonStyle.primary)
     async def scratch(self, interaction: discord.Interaction, button: discord.ui.Button):
