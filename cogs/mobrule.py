@@ -14,6 +14,7 @@ class MobRule(discord.ext.commands.Cog):
         '''Change the server icon.'''
         logger.info(f"{interaction.user.name} issued /icon, ({interaction.channel})")
         await interaction.guild.edit(icon=await attachment.read(), reason=f"Requested by {interaction.user.name}")
+        await interaction.response.send_message("Icon changed!", ephemeral=True)
     
 async def setup(client: MiniSigma):
     await client.add_cog(MobRule(client))
