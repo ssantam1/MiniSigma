@@ -38,8 +38,8 @@ class Debug(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="icon", description="Displays the server icon")
-    async def icon(self, interaction: discord.Interaction):
+    @commands.command()
+    async def show_icon(self, interaction: discord.Interaction):
         '''Replies with a higher-res image of the server's icon'''
         icon_url = str(interaction.guild.icon.url)
 
