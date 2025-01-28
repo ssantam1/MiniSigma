@@ -38,6 +38,17 @@ class Debug(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
+    @app_commands.command(name="icon", description="Displays the server icon")
+    async def icon(self, interaction: discord.Interaction):
+        '''Replies with a higher-res image of the server's icon'''
+        icon_url = str(interaction.guild.icon.url)
+
+        embed = discord.Embed(url="https://cdn.discordapp.com/", color=EMBED_COLOR)
+        embed.set_author(name=f"{interaction.guild.name}'s Icon", icon_url=icon_url)
+        embed.set_image(url=icon_url)
+
+        await interaction.response.send_message(embed=embed)
+
     @commands.command()
     async def messages_in_channel(self, ctx: commands.Context):
         '''Replies with the number of messages in the channel'''
