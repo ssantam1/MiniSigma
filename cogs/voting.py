@@ -146,13 +146,13 @@ class Voting(commands.Cog):
     
     @app_commands.command(name=POINTS_NAME.lower(), description=f"Displays current {POINTS_NAME} score")
     @app_commands.describe(target=f"The server member you would like to check the {POINTS_NAME} of")
-    async def iq(self, interaction: discord.Interaction, target: discord.Member = None):
-        '''Displays the user's current IQ score'''
+    async def score(self, interaction: discord.Interaction, target: discord.Member = None):
+        '''Displays the user's current score'''
         target = interaction.user if target == None else target
-        logger.info(f"{interaction.user.name} issued /iq {target}, ({interaction.channel})")
-        iq = self.db.get_iq(target.id)
+        logger.info(f"{interaction.user.name} issued /{POINTS_NAME.lower()} {target}, ({interaction.channel})")
+        score = self.db.get_score(target.id)
         name = strip_score(target.nick or target.name)
-        await interaction.response.send_message(f"{name}'s {POINTS_NAME}: {iq}")
+        await interaction.response.send_message(f"{name}'s {POINTS_NAME}: {score}")
 
     async def user_sentiment(self, interaction: discord.Interaction, target: discord.Member) -> discord.Embed:
         '''Returns an embed with a list of target's fans or haters, based on context commmand'''
@@ -262,7 +262,7 @@ class Voting(commands.Cog):
 
             ranks.append(str(i+1))
             usernames.append(display_name)
-            scores.append(str(self.db.get_iq(user[0])))
+            scores.append(str(self.db.get_score(user[0])))
 
         embed.add_field(name="Rank", value="\n".join(ranks), inline=True)
         embed.add_field(name="Name", value="\n".join(usernames), inline=True)
@@ -286,20 +286,19 @@ class Voting(commands.Cog):
         scores: list[str] = []
 
         index = 1
-        prev_iq = None
+        last_score = None
 
-        for user in top:
-            user_id, display_name, iq = user
+        for id, name, score in top:
 
-            if iq != prev_iq:
+            if score != last_score:
                 ranks.append(str(index))
             else:
                 ranks.append("")
 
-            usernames.append(display_name)
-            scores.append(str(self.db.get_iq(user[0])))
+            usernames.append(name)
+            scores.append(str(self.db.get_score(id)))
 
-            prev_iq = iq
+            last_score = score
 
             if index == 10:
                 break
@@ -338,9 +337,9 @@ class Voting(commands.Cog):
         for user in users:
             try:
                 member = ctx.guild.get_member(user[0])
-                iq = user[2] - user[3] + user[4]
+                score = user[2] - user[3] + user[4]
                 if member is not None:
-                    tasklist.append(nick_update(member, iq))
+                    tasklist.append(nick_update(member, score))
             except:
                 print(f"Couldn't fetch {user(1)}'s member object, skipping...")
         

@@ -77,19 +77,19 @@ async def nick_update(member: discord.Member, score: int) -> None:
     except AttributeError:
         current_nick = member.name
         
-    nick_sans_iq: str = strip_score(current_nick)
-    new_nick: str = f"{nick_sans_iq} ({score} {POINTS_NAME})"
+    nick_sans_score: str = strip_score(current_nick)
+    new_nick: str = f"{nick_sans_score} ({score} {POINTS_NAME})"
 
     try:
         await member.edit(nick=new_nick)
-        logger.info(f"Successfully updated {nick_sans_iq}'s nickname to: {new_nick}")
+        logger.info(f"Successfully updated {nick_sans_score}'s nickname to: {new_nick}")
     except discord.errors.Forbidden:
         logger.warning(
-            f"Permission denied: Unable to update {nick_sans_iq}'s nickname. "
+            f"Permission denied: Unable to update {nick_sans_score}'s nickname. "
             f"New score is {score}"
         )
     except discord.errors.HTTPException:
         logger.warning(
-            f"Nickname too long: Failed to update {nick_sans_iq}'s nickname. "
+            f"Nickname too long: Failed to update {nick_sans_score}'s nickname. "
             f"New score is {score}"
         )

@@ -172,11 +172,11 @@ class Debug(commands.Cog):
     
     @commands.command()
     @commands.is_owner()
-    async def give_iq(self, ctx: commands.Context, user: discord.Member, iq: int):
-        '''Gives a user a number of IQ'''
-        # Add iq to user's offset
-        self.db.c.execute("UPDATE Users SET offset = offset + ? WHERE id = ?", (iq, user.id))
-        await ctx.send(f"{iq} IQ points have been given to {user.mention}")
+    async def give_score(self, ctx: commands.Context, user: discord.Member, score: int):
+        '''Gives a user a specified amount of bonus points'''
+        # Add to user's offset
+        self.db.c.execute("UPDATE Users SET offset = offset + ? WHERE id = ?", (score, user.id))
+        await ctx.send(f"{score} points have been given to {user.mention}")
 
     @commands.command()
     @commands.is_owner()

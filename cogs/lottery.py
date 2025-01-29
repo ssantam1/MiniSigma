@@ -57,7 +57,7 @@ class Ticket(discord.ui.View):
         result_text, reward_text = self.get_lottery_result()
         embed.add_field(name=result_text, value=reward_text)
 
-        await nick_update(self.user, self.db.get_iq(self.user.id))
+        await nick_update(self.user, self.db.get_score(self.user.id))
 
         await interaction.message.edit(embed=embed, view=self)
         await interaction.response.defer()

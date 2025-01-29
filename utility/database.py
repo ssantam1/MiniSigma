@@ -96,14 +96,14 @@ class Database:
         self.c.execute("UPDATE Users SET upvotes = ? WHERE id = ?", (user[2] + change, id))
         self.conn.commit()
         self.update_fans(id, change, voter_id)
-        return self.get_iq(id)
+        return self.get_score(id)
     
     def downvote_user(self, id: int, change: int, voter_id: int) -> int:
         user = self.get_user(id)
         self.c.execute("UPDATE Users SET downvotes = ? WHERE id = ?", (user[3] + change, id))
         self.conn.commit()
         self.update_haters(id, change, voter_id)
-        return self.get_iq(id)
+        return self.get_score(id)
     
     # ========== FANS AND HATERS ==========
 
@@ -153,13 +153,13 @@ class Database:
         self.c.execute("SELECT FansAndHaters.fan_or_hater_id, Users.username, FansAndHaters.downvotes FROM FansAndHaters JOIN Users ON FansAndHaters.fan_or_hater_id = Users.id WHERE FansAndHaters.user_id = ? ORDER BY FansAndHaters.downvotes DESC LIMIT ?", (id, num))
         return self.c.fetchall()
     
-    def get_iq(self, id: int) -> int:
-        '''Returns the IQ of a user'''
+    def get_score(self, id: int) -> int:
+        '''Returns the score of a user'''
         self.c.execute("SELECT upvotes-downvotes+offset FROM Users WHERE id = ?", (id,))
         return self.c.fetchone()[0]
     
-    def get_iq_in_guild(self, id: int, guild_id: int) -> int:
-        '''Returns the IQ of a user just from reacts in a specific guild'''
+    def get_score_in_guild(self, id: int, guild_id: int) -> int:
+        '''Returns the score of a user just from reacts in a specific guild'''
         self.c.execute("SELECT SUM(Reactions.vote_type) FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id WHERE Messages.author_id = ? AND Messages.guild_id = ?", (id, guild_id))
         return self.c.fetchone()[0]
     
@@ -316,9 +316,9 @@ class Database:
         self.conn.commit()
 
     def is_valid_bet(self, user_id: int, amount: int) -> bool:
-        '''Checks if the user has enough money (IQ) to place a bet'''
-        iq = self.get_iq(user_id)
-        return iq >= amount and amount > 0
+        '''Checks if the user has enough score to place a bet'''
+        score = self.get_score(user_id)
+        return score >= amount and amount > 0
 
     def place_bet(self, user_id: int, amount: int, game: str):
         '''Places a bet on a game'''
