@@ -159,6 +159,7 @@ class BlackjackView(discord.ui.View):
         self.db.place_bet(user.id, bet, "blackjack")
         logger.info(f"{self.user.name} -{self.bet} points on blackjack")
         
+        self.is_doubled_down = False
         self.double_down.disabled = not self.db.is_valid_bet(self.user.id, self.bet)
 
     def create_embed(self):
@@ -219,6 +220,11 @@ class BlackjackView(discord.ui.View):
 
         await nick_update(self.user, self.db.get_score(self.user.id))
         self.embed.add_field(name="Result:", value=win_str, inline=False)
+
+        if self.is_doubled_down:
+            self.embed.title = f"Stakes: {self.bet//2}"
+            self.bet //= 2
+            
         await interaction.response.edit_message(embed=self.embed, view=BlackjackInactiveView(self.db, self.user, self.bet))
         self.stop()
 
@@ -260,6 +266,7 @@ class BlackjackView(discord.ui.View):
         self.db.place_bet(self.user.id, self.bet, "blackjack double down")
         logger.info(f"{self.user.name} -{self.bet} points on BJ double down")
         
+        self.is_doubled_down = True
         self.bet *= 2
         self.embed.title = f"Stakes: {self.bet}"
         self.playerHand.hit()
