@@ -72,8 +72,8 @@ class Lottery(commands.Cog):
         '''Creates an embed with three blank spots to be "scratched" later'''
         return discord.Embed(title="Scratch Ticket", description=":grey_question: Scratch to claim!", color=EMBED_COLOR)
     
-    def get_cooldown(self, user_id: int) -> int:
-        '''Returns time remaining until the user can play the lottery again, 0 if they can play now.'''
+    def get_cooldown(self, user_id: int) -> timedelta:
+        '''Returns time until the user can do /daily again, 0 if they can play now.'''
         time_last_played: datetime = self.db.get_lottery_cooldown(user_id) 
 
         # If we don't have a record, there is no cooldown
@@ -87,15 +87,16 @@ class Lottery(commands.Cog):
         if time_remaining <= timedelta(0):
             return 0
         
-        # Otherwise, return the time remaining in seconds
-        return int(time_remaining.total_seconds())
+        # Otherwise, return the time remaining
+        return time_remaining
 
     @app_commands.command(name="daily", description="Redeem your daily reward!")
     async def daily(self, interaction: discord.Interaction):
         '''Allows the user to play the lottery once per day.'''
         cooldown = self.get_cooldown(interaction.user.id)
-        if cooldown > 0:
-           await interaction.response.send_message(f"Please wait {cooldown} seconds before playing again!", ephemeral=True)
+        if cooldown.total_seconds() > 0:
+           cooldown_str = str(cooldown).split('.')[0]
+           await interaction.response.send_message(f"Please wait {cooldown_str} before playing again!", ephemeral=True)
            return
 
         embed = self.create_embed()
