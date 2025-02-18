@@ -76,16 +76,19 @@ class Lottery(commands.Cog):
         '''Returns time remaining until the user can play the lottery again, 0 if they can play now.'''
         time_last_played: datetime = self.db.get_lottery_cooldown(user_id) 
 
-        # If we don't have a record, let them play immediately
+        # If we don't have a record, there is no cooldown
         if time_last_played is None:
             return 0
 
         cooldown_period = timedelta(days=1)
         time_remaining = cooldown_period - (datetime.now() - time_last_played)
-
-        if time_remaining < cooldown_period:
-            return int(time_remaining.total_seconds())
-        return 0
+        
+        # If the time remaining is negative, the cooldown has expired
+        if time_remaining <= timedelta(0):
+            return 0
+        
+        # Otherwise, return the time remaining in seconds
+        return int(time_remaining.total_seconds())
 
     @app_commands.command(name="daily", description="Redeem your daily reward!")
     async def daily(self, interaction: discord.Interaction):
