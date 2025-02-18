@@ -74,15 +74,16 @@ class Lottery(commands.Cog):
     
     def get_cooldown(self, user_id: int) -> int:
         '''Returns time remaining until the user can play the lottery again, 0 if they can play now.'''
-        time_since_last_played: timedelta = self.db.get_lottery_cooldown(user_id) 
+        time_last_played: datetime = self.db.get_lottery_cooldown(user_id) 
 
-        if time_since_last_played is None:
+        # If we don't have a record, let them play immediately
+        if time_last_played is None:
             return 0
 
         cooldown_period = timedelta(days=1)
-        time_remaining = cooldown_period - time_since_last_played
+        time_remaining = cooldown_period - (datetime.now() - time_last_played)
 
-        if time_remaining.total_seconds() > 0:
+        if time_remaining < cooldown_period:
             return int(time_remaining.total_seconds())
         return 0
 

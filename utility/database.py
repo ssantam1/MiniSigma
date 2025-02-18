@@ -491,14 +491,9 @@ class Database:
 
         self.conn.commit()
 
-    def get_lottery_cooldown(self, user_id: int) -> timedelta:
-        '''Returns the time since the user last played the lottery'''
+    def get_lottery_cooldown(self, user_id: int) -> datetime:
+        '''Returns the last time the user last played the lottery'''
         self.c.execute("SELECT last_played FROM LotteryCooldowns WHERE user_id = ?", (user_id,))
         result = self.c.fetchone()
 
-        if result is None:
-            return None
-        
-        last_played = datetime.fromisoformat(result[0])
-        time_diff = datetime.now() - last_played
-        return time_diff
+        return datetime.fromisoformat(result[0]) if result else None
