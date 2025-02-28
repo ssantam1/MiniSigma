@@ -1,6 +1,4 @@
-import re
 import os
-import json
 import random
 import discord
 from discord.ext import commands
@@ -8,9 +6,7 @@ from discord import app_commands
 from bot import MiniSigma
 import utility.bumper_generator as bumper_generator
 
-
 class Fun(commands.Cog):
-
     def __init__(self, client: MiniSigma) -> None:
         self.client = client
         self.resources_dir = os.path.join(os.path.curdir, 'resources')
@@ -23,13 +19,14 @@ class Fun(commands.Cog):
         if msg.author.id == 249951720598142977:
             if "a bit" in msg_text:
                 reply = f'Brazilian time unit detected: "a bit"\nAmerican time translation: "{random.randint(2,12)} hours"'
-                await msg.reply(content=reply)
             elif "a min" in msg_text:
                 reply = f'Brazilian time unit detected: "a min"\nAmerican time translation: "{random.randint(2,12)} days"'
-                await msg.reply(content=reply)
             elif "a sec" in msg_text:
                 reply = f'Brazilian time unit detected: "a sec"\nAmerican time translation: "{random.randint(2,12)} years"'
-                await msg.reply(content=reply)
+            else:
+                return
+            
+            await msg.reply(reply)
 
     @commands.command()
     async def roll(self, ctx: commands.Context, sides: int = 6):
@@ -46,6 +43,7 @@ class Fun(commands.Cog):
     async def adultswim(self, interaction: discord.Interaction, content: str, small: bool = False):
         bumper_generator.generate(content, small)
         fpath = os.path.join(self.resources_dir, "bumper.png")
+        
         with open(fpath, "rb") as file:
             bumper = discord.File(file, "bumper.png")
 
