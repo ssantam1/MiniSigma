@@ -11,37 +11,31 @@ import io
 import utility.database as DB
 
 class Rarity(Enum):
-    COMMON = 'Common'
-    UNCOMMON = 'Uncommon'
-    RARE = 'Rare'
-    LEGENDARY = 'Legendary'
+    COMMON = ('Common', discord.Colour.greyple())
+    UNCOMMON = ('Uncommon', discord.Colour.green())
+    RARE = ('Rare', discord.Colour.blue())
+    LEGENDARY = ('Legendary', discord.Colour.purple())
+
+    def __init__(self, label, color):
+        self.label = label
+        self.color = color
 
 class Gacha(commands.Cog):
     def __init__(self, client: MiniSigma):
         self.client = client
         self.db: DB.Database = client.db
 
-    def get_rarity(self, id: int) -> str:
+    def get_rarity(self, id: int) -> Rarity:
         # Use the last two digits of the user's ID to determine the rarity
         level = id % 100
         if level < 60:
-            return 'Common'
+            return Rarity.COMMON
         elif level < 90:
-            return 'Uncommon'
+            return Rarity.UNCOMMON
         elif level < 98:
-            return 'Rare'
+            return Rarity.RARE
         else:
-            return 'Legendary'
-        
-    def get_color(self, rarity: str) -> discord.Colour:
-        '''Get the color for a rarity'''
-        colour = {
-            'Common': discord.Colour.greyple(),
-            'Uncommon': discord.Colour.green(),
-            'Rare': discord.Colour.blue(),
-            'Legendary': discord.Colour.purple()
-        }
-        return colour[rarity]
+            return Rarity.LEGENDARY
         
     def count_rarities(self, ids: list[int]) -> dict:
         '''Count the number of characters of each rarity in a list of IDs'''
@@ -52,10 +46,8 @@ class Gacha(commands.Cog):
             'Legendary': 0
         }
         for id in ids:
-            rarity_name = self.get_rarity(id)
-            if rarity_name not in rarities:
-                rarities[rarity_name] = 0
-            rarities[rarity_name] += 1
+            rarity = self.get_rarity(id)
+            rarities[rarity.label] += 1
         return rarities
     
     @commands.command()
@@ -95,8 +87,8 @@ class Gacha(commands.Cog):
         user_on_card = await self.client.fetch_user(card_id)
         card_image = str(user_on_card.display_avatar.with_size(256))
 
-        card_embed = discord.Embed(title=f"__**{card_name}**__", color=self.get_color(rarity))
-        card_embed.set_author(name=f'[{rarity.upper()}]')
+        card_embed = discord.Embed(title=f"__**{card_name}**__", color=rarity.color)
+        card_embed.set_author(name=f'[{rarity.label.upper()}]')
 
         card_embed.add_field(name='ATK', value=card_atk, inline=True)
         card_embed.add_field(name='DEF', value=card_def, inline=True)
