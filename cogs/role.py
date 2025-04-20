@@ -35,7 +35,7 @@ class RoleCog(commands.Cog):
             view = discord.ui.View(timeout=None)
             for role in guild.roles:
                 view.add_item(RoleButton(role))
-            self.client.add_view(view)
+                self.client.add_view(view)
 
         logger.info("Role Cog is ready.")
 
