@@ -16,9 +16,11 @@ class RoleButton(discord.ui.Button):
         member = interaction.user
         if self.role in member.roles:
             await member.remove_roles(self.role)
+            logger.info(f"Removed {self.role.name} role from {member.name}.")
             await interaction.response.send_message(f"Removed {self.role.mention} role.", ephemeral=True)
         else:
             await member.add_roles(self.role)
+            logger.info(f"Added {self.role.name} role to {member.name}.")
             await interaction.response.send_message(f"Added {self.role.mention} role.", ephemeral=True)
 
 class RoleCog(commands.Cog):
