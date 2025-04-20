@@ -32,8 +32,8 @@ class RoleCog(commands.Cog):
         # Should probably be using db to store roles with buttons
         # but for now, we just add buttons for all roles in all guilds
         for guild in self.client.guilds:
-            view = discord.ui.View(timeout=None)
             for role in guild.roles:
+                view = discord.ui.View(timeout=None)
                 view.add_item(RoleButton(role))
                 self.client.add_view(view)
 
