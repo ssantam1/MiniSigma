@@ -193,5 +193,13 @@ class Debug(commands.Cog):
         await ctx.send("Shutting down...")
         await self.client.close()
 
+    @commands.command()
+    @commands.is_owner()
+    async def mention_all_roles(self, ctx: commands.Context):
+        '''Mentions all roles in the server'''
+        roles = ctx.guild.roles
+        role_mentions = [role.mention for role in roles if role.mentionable]
+        await ctx.send("\n".join(role_mentions))
+
 async def setup(client: MiniSigma):
     await client.add_cog(Debug(client))
