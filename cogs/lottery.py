@@ -78,14 +78,14 @@ class Lottery(commands.Cog):
 
         # If we don't have a record, there is no cooldown
         if time_last_played is None:
-            return 0
+            return timedelta(0)
 
         cooldown_period = timedelta(days=1)
         time_remaining = cooldown_period - (datetime.now() - time_last_played)
         
         # If the time remaining is negative, the cooldown has expired
         if time_remaining <= timedelta(0):
-            return 0
+            return timedelta(0)
         
         # Otherwise, return the time remaining
         return time_remaining
