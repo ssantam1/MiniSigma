@@ -252,17 +252,37 @@ class Database:
         return self.c.fetchone()
 
     def get_controversial(self, guild_id: int) -> list[tuple[int, int, int, int, int, int, str, float]]:
-        '''Returns the most controversial messages in a guild as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(positive votes), SUM(negative votes), content, vote_ratio_diff)'''
+        '''Returns the most controversial messages in a guild as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(positive votes), SUM(negative votes), content, Controversial score)'''
         self.c.execute("""
-            SELECT 
+            SELECT
                 Messages.author_id, 
                 Messages.id, 
                 Messages.channel_id, 
                 Messages.guild_id, 
                 SUM(CASE WHEN Reactions.vote_type > 0 THEN 1 ELSE 0 END) AS positive_votes, 
                 SUM(CASE WHEN Reactions.vote_type < 0 THEN 1 ELSE 0 END) AS negative_votes,
-                Messages.content,
-                ABS(CAST(SUM(CASE WHEN Reactions.vote_type > 0 THEN 1 ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN Reactions.vote_type < 0 THEN 1 ELSE 0 END), 0) - 1) AS vote_ratio_diff
+                Messages.content, 
+                CASE
+                    WHEN
+                        SUM(CASE WHEN Reactions.vote_type > 0 THEN 1 ELSE 0 END) = 0
+                        OR
+                        SUM(CASE WHEN Reactions.vote_type < 0 THEN 1 ELSE 0 END) = 0
+                    THEN 0.0
+                    ELSE
+                        POW(
+                            SUM(CASE WHEN Reactions.vote_type > 0 THEN 1 ELSE 0 END)
+                            +
+                            SUM(CASE WHEN Reactions.vote_type < 0 THEN 1 ELSE 0 END),
+                            MIN(
+                                CAST(
+                                    SUM(CASE WHEN Reactions.vote_type > 0 THEN 1 ELSE 0 END) AS REAL
+                                ) / SUM(CASE WHEN Reactions.vote_type > 0 THEN 1 ELSE 0 END),
+                                CAST(
+                                    SUM(CASE WHEN Reactions.vote_type < 0 THEN 1 ELSE 0 END) AS REAL
+                                ) / SUM(CASE WHEN Reactions.vote_type < 0 THEN 1 ELSE 0 END)
+                            )
+                        )
+                END AS controversial_score
             FROM 
                 Messages
             LEFT JOIN 
@@ -271,10 +291,8 @@ class Database:
                 Messages.guild_id = ?
             GROUP BY 
                 Messages.id, Messages.author_id, Messages.channel_id, Messages.guild_id, Messages.content
-            HAVING 
-                vote_ratio_diff IS NOT NULL
             ORDER BY 
-                vote_ratio_diff ASC, positive_votes DESC, negative_votes DESC
+                controversial_score DESC;
         """, (guild_id,))
         return self.c.fetchall()
     

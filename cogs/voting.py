@@ -319,10 +319,10 @@ class Voting(commands.Cog):
         embed.set_author(name=f"{interaction.guild.name} Controversial Messages", icon_url=interaction.guild.icon.url)
 
         data = list()
-        for (author_id, m_id, c_id, g_id, positive, negative, content, ratio) in top:
+        for (author_id, m_id, c_id, g_id, positive, negative, content, _) in top:
             message_url = f"https://discord.com/channels/{g_id}/{c_id}/{m_id}"
             preview = content[:100] + "..." if len(content) > 100 else content
-            field_name = f"Ratio: {positive}/{negative} ({ratio:.2f})"
+            field_name = f"[ {positive} Up / {negative} Down ]"
             field_value = f'"{preview}"\n -<@{author_id}> [Jump to message]({message_url})'
             data.append(tuple([field_name, field_value]))
 
