@@ -1,6 +1,6 @@
+from typing import Optional
 import sqlite3
 from datetime import datetime
-from datetime import timedelta
 from discord import Message
 
 class Database:
@@ -206,7 +206,7 @@ class Database:
         self.c.execute("SELECT * FROM Reactions")
         return self.c.fetchall()
     
-    def best_of(self, id: int, num: int = None) -> list[tuple[int, int, int, int]]:
+    def best_of(self, id: int, num: Optional[int] = None) -> list[tuple[int, int, int, int]]:
         '''Returns the top num messages of a user as a list of tuples (message_id, channel_id, guild_id, SUM(vote_type))'''
         if num is None:
             self.c.execute("SELECT Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type) FROM Reactions JOIN Messages on Reactions.message_id = Messages.id WHERE Messages.author_id = ? GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC", (id,))
@@ -215,7 +215,7 @@ class Database:
         
         return self.c.fetchall()
     
-    def top_messages(self, guild_id: int = None) -> list[tuple[str, int, int, int, int, str]]:
+    def top_messages(self, guild_id: Optional[int] = None) -> list[tuple[str, int, int, int, int, str]]:
         '''Returns the top 5 messages as a list of tuples (author_id, message_id, channel_id, guild_id, SUM(vote_type), content)'''
         if guild_id is None:
             self.c.execute("SELECT Messages.author_id, Reactions.message_id, Messages.channel_id, Messages.guild_id, SUM(Reactions.vote_type), Messages.content FROM Reactions JOIN Messages ON Reactions.message_id = Messages.id GROUP BY Reactions.message_id ORDER BY SUM(Reactions.vote_type) DESC")
@@ -238,6 +238,9 @@ class Database:
     
     def add_message(self, message: Message) -> None:
         '''Adds a message to the database if it doesn't exist already.'''
+        if message.guild is None:
+            raise ValueError("Message must be from a guild.")
+        
         self.c.execute("INSERT OR IGNORE INTO Messages (id, channel_id, guild_id, author_id, content, timestamp) VALUES (?, ?, ?, ?, ?, ?)", (message.id, message.channel.id, message.guild.id, message.author.id, message.clean_content, message.created_at.isoformat()))
         self.conn.commit()
 
@@ -437,7 +440,7 @@ class Database:
         )
         self.conn.commit()
 
-    def get_starboard_channel(self, guild_id: int) -> int:
+    def get_starboard_channel(self, guild_id: int) -> Optional[int]:
         '''Gets the starboard channel for a guild'''
         self.c.execute(
             """
@@ -450,7 +453,7 @@ class Database:
         result = self.c.fetchone()
         return result[0] if result else None
 
-    def get_starboard_threshold(self, guild_id: int) -> int:
+    def get_starboard_threshold(self, guild_id: int) -> Optional[int]:
         '''Gets the starboard threshold for a guild'''
         self.c.execute("SELECT threshold FROM StarboardChannels WHERE guild_id = ?", (guild_id,))
         result = self.c.fetchone()
@@ -509,8 +512,8 @@ class Database:
 
         self.conn.commit()
 
-    def get_lottery_cooldown(self, user_id: int) -> datetime:
-        '''Returns the last time the user last played the lottery'''
+    def get_lottery_cooldown(self, user_id: int) -> Optional[datetime]:
+        '''Returns the last time the user last played the lottery, or None if they haven't played yet.'''
         self.c.execute("SELECT last_played FROM LotteryCooldowns WHERE user_id = ?", (user_id,))
         result = self.c.fetchone()
 
