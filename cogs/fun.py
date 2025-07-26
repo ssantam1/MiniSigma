@@ -21,7 +21,7 @@ class Fun(commands.Cog):
                 reply = f'Brazilian time unit detected: "a bit"\nAmerican time translation: "{random.randint(2,12)} hours"'
             elif "a min" in msg_text:
                 reply = f'Brazilian time unit detected: "a min"\nAmerican time translation: "{random.randint(2,12)} days"'
-            elif "a sec" in msg_text:
+            elif "a sec" in msg_text or "1 sec" in msg_text:
                 reply = f'Brazilian time unit detected: "a sec"\nAmerican time translation: "{random.randint(2,12)} years"'
             else:
                 return
